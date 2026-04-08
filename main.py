@@ -17,7 +17,6 @@ import pygame
 
 from constants       import SCREEN_W, SCREEN_H, FPS, LEVEL_W
 from player          import Player
-from delivery_target import DeliveryTarget
 from level           import LEVELS
 from drawing         import (
     draw_background, draw_hud, draw_overlay,
@@ -26,10 +25,9 @@ from menu            import run_menu
 
 
 def new_game(level_index: int = 0):
-    tilemap, enemies = LEVELS[level_index].build()
-    player   = Player(120, 594)          # ground y=640, player h=46 → spawn y=594
+    tilemap, enemies, delivery = LEVELS[level_index].build()
+    player   = Player(120, 594)   # ground y=640, player h=46 → spawn y=594
     arrows   = []
-    delivery = DeliveryTarget(2620, 550) # door bottom aligns with ground y=640
     camera_x = 0.0
     return tilemap, enemies, player, arrows, delivery, camera_x
 
@@ -43,9 +41,7 @@ def main():
     font_md  = pygame.font.Font(None, 52)
     font_sm  = pygame.font.Font(None, 24)
 
-    run_menu(screen, clock)
-
-    level_index = 0
+    level_index = run_menu(screen, clock, len(LEVELS))
     tilemap, enemies, player, arrows, delivery, camera_x = new_game(level_index)
     game_state = "playing"
 
@@ -65,7 +61,10 @@ def main():
                         tilemap, enemies, player, arrows, delivery, camera_x = new_game(level_index)
                         game_state = "playing"
                     elif game_state == "victory":
-                        level_index = (level_index + 1) % len(LEVELS)
+                        if level_index >= len(LEVELS) - 1:
+                            level_index = run_menu(screen, clock, len(LEVELS))
+                        else:
+                            level_index += 1
                         tilemap, enemies, player, arrows, delivery, camera_x = new_game(level_index)
                         game_state = "playing"
             if game_state == "playing":

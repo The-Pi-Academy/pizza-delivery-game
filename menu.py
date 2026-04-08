@@ -27,12 +27,23 @@ class Button:
         )
 
 
-def run_menu(screen, clock):
-    """Block until the player clicks a level button. Returns the chosen level number."""
+def run_menu(screen, clock, level_count: int) -> int:
+    """Block until the player selects a level. Returns the chosen level index (0-based)."""
     font_title  = pygame.font.Font(None, 96)
+    font_sub    = pygame.font.Font(None, 38)
     font_button = pygame.font.Font(None, 52)
 
-    play_btn = Button(SCREEN_W // 2, SCREEN_H // 2, 220, 60, "Play", font_button)
+    cx      = SCREEN_W // 2
+    btn_w   = 200
+    btn_h   = 60
+    spacing = 80
+    start_y = SCREEN_H // 2
+
+    buttons = [
+        Button(cx, start_y + i * spacing, btn_w, btn_h,
+               f"Level {i + 1}", font_button)
+        for i in range(level_count)
+    ]
 
     while True:
         clock.tick(FPS)
@@ -41,17 +52,22 @@ def run_menu(screen, clock):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 raise SystemExit
-            if event.key == pygame.K_ESCAPE if event.type == pygame.KEYDOWN else False:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 raise SystemExit
-            if play_btn.is_clicked(event):
-                return 1
+            for i, btn in enumerate(buttons):
+                if btn.is_clicked(event):
+                    return i
 
         screen.fill(BLACK)
 
-        title = font_title.render("Pi Camp Pizza Delivery", True, WHITE)
-        screen.blit(title, (SCREEN_W // 2 - title.get_width() // 2, 80))
+        title = font_title.render("Pizza Quest", True, WHITE)
+        screen.blit(title, (cx - title.get_width() // 2, 160))
 
-        play_btn.draw(screen)
+        sub = font_sub.render("Choose a level", True, (180, 180, 180))
+        screen.blit(sub, (cx - sub.get_width() // 2, start_y - 50))
+
+        for btn in buttons:
+            btn.draw(screen)
 
         pygame.display.flip()
