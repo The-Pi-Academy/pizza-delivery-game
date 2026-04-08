@@ -6,7 +6,7 @@ pygame.init()
 SCREEN_W = 1280
 SCREEN_H  = 720
 FPS       = 60
-LEVEL_W   = 3500
+LEVEL_W   = 55 * 64   # 3520 — 55 grid tiles wide
 
 # Physics
 GRAVITY       = 0.78

@@ -152,16 +152,21 @@ def draw_hud(surface, player, font_sm):
 # ---------------------------------------------------------------------------
 # Game-state overlays
 # ---------------------------------------------------------------------------
-def draw_overlay(surface, font_big, font_md, font_sm, state):
+def draw_overlay(surface, font_big, font_md, font_sm, state, level_index=0, level_count=1):
     overlay = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 145))
     surface.blit(overlay, (0, 0))
     cx = SCREEN_W // 2
+    is_last_level = (level_index >= level_count - 1)
     if state == "dead":
-        draw_centered(surface, "PIZZA DROPPED!",         font_big, RED,    cx, 240)
+        draw_centered(surface, "PIZZA DROPPED!",            font_big, RED,    cx, 240)
         draw_centered(surface, "The pizza is ruined\u2026", font_md,  ORANGE, cx, 330)
-        draw_centered(surface, "Press  R  to try again", font_sm,  WHITE,  cx, 400)
+        draw_centered(surface, "Press  R  to try again",    font_sm,  WHITE,  cx, 400)
     elif state == "victory":
-        draw_centered(surface, "PIZZA DELIVERED!",              font_big, YELLOW, cx, 240)
-        draw_centered(surface, "The kingdom feasts tonight!",   font_md,  ORANGE, cx, 330)
-        draw_centered(surface, "Press  R  to deliver again",    font_sm,  WHITE,  cx, 400)
+        draw_centered(surface, "PIZZA DELIVERED!",                        font_big, YELLOW, cx, 240)
+        draw_centered(surface, "The kingdom feasts tonight!",             font_md,  ORANGE, cx, 330)
+        if is_last_level:
+            draw_centered(surface, "Press  R  to play again from level 1", font_sm, WHITE, cx, 400)
+        else:
+            next_num = level_index + 2   # current is index+1, next is index+2
+            draw_centered(surface, f"Press  R  for level  {next_num}",    font_sm,  WHITE,  cx, 400)

@@ -8,7 +8,7 @@ Controls:
   1           - Equip Sword
   2           - Equip Bow
   ENTER       - Swing sword / Shoot arrow
-  R           - Restart (when dead or victorious)
+  R           - Restart (when dead) / Next level (when victorious)
   ESC         - Quit
 """
 
@@ -18,20 +18,20 @@ import pygame
 from constants       import SCREEN_W, SCREEN_H, FPS, LEVEL_W
 from player          import Player
 from delivery_target import DeliveryTarget
-from level           import create_level
+from level           import LEVELS
 from drawing         import (
-    draw_background, draw_platform, draw_hud, draw_overlay,
+    draw_background, draw_hud, draw_overlay,
 )
 from menu            import run_menu
 
 
-def new_game():
-    platforms, enemies = create_level()
-    player   = Player(120, 560)
+def new_game(level_index: int = 0):
+    tilemap, enemies = LEVELS[level_index].build()
+    player   = Player(120, 594)          # ground y=640, player h=46 → spawn y=594
     arrows   = []
-    delivery = DeliveryTarget(2620, 530)
+    delivery = DeliveryTarget(2620, 550) # door bottom aligns with ground y=640
     camera_x = 0.0
-    return platforms, enemies, player, arrows, delivery, camera_x
+    return tilemap, enemies, player, arrows, delivery, camera_x
 
 
 def main():
@@ -45,7 +45,8 @@ def main():
 
     run_menu(screen, clock)
 
-    platforms, enemies, player, arrows, delivery, camera_x = new_game()
+    level_index = 0
+    tilemap, enemies, player, arrows, delivery, camera_x = new_game(level_index)
     game_state = "playing"
 
     running = True
@@ -59,17 +60,21 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
-                if event.key == pygame.K_r and game_state in ("dead", "victory"):
-                    platforms, enemies, player, arrows, delivery, camera_x = new_game()
-                    game_state = "playing"
+                if event.key == pygame.K_r:
+                    if game_state == "dead":
+                        tilemap, enemies, player, arrows, delivery, camera_x = new_game(level_index)
+                        game_state = "playing"
+                    elif game_state == "victory":
+                        level_index = (level_index + 1) % len(LEVELS)
+                        tilemap, enemies, player, arrows, delivery, camera_x = new_game(level_index)
+                        game_state = "playing"
             if game_state == "playing":
                 player.process_event(event, arrows)
 
         # ---- Render paused / end-screen state without updating -------------
         if game_state != "playing":
             draw_background(screen, camera_x)
-            for p in platforms:
-                draw_platform(screen, p, camera_x)
+            tilemap.draw(screen, camera_x)
             delivery.draw(screen, camera_x)
             for e in enemies:
                 e.draw(screen, camera_x)
@@ -77,12 +82,13 @@ def main():
                 a.draw(screen, camera_x)
             player.draw(screen, camera_x)
             draw_hud(screen, player, font_sm)
-            draw_overlay(screen, font_big, font_md, font_sm, game_state)
+            draw_overlay(screen, font_big, font_md, font_sm, game_state, level_index, len(LEVELS))
             pygame.display.flip()
             continue
 
         # ---- Update --------------------------------------------------------
         keys = pygame.key.get_pressed()
+        platforms = tilemap.platforms
         player.update(platforms, keys)
 
         # Arrows
@@ -127,7 +133,7 @@ def main():
         if player.y > SCREEN_H + 60:
             player.take_damage(Player.PIT_DAMAGE)
             player.x  = max(50, player.x - 150)
-            player.y  = 520
+            player.y  = 594
             player.vy = 0
             if player.hp <= 0:
                 game_state = "dead"
@@ -139,8 +145,7 @@ def main():
 
         # ---- Draw ----------------------------------------------------------
         draw_background(screen, camera_x)
-        for p in platforms:
-            draw_platform(screen, p, camera_x)
+        tilemap.draw(screen, camera_x)
         delivery.draw(screen, camera_x)
         for e in enemies:
             e.draw(screen, camera_x)

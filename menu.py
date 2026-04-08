@@ -32,7 +32,7 @@ def run_menu(screen, clock):
     font_title  = pygame.font.Font(None, 96)
     font_button = pygame.font.Font(None, 52)
 
-    level1_btn = Button(SCREEN_W // 2, SCREEN_H // 2, 220, 60, "Level 1", font_button)
+    play_btn = Button(SCREEN_W // 2, SCREEN_H // 2, 220, 60, "Play", font_button)
 
     while True:
         clock.tick(FPS)
@@ -44,7 +44,7 @@ def run_menu(screen, clock):
             if event.key == pygame.K_ESCAPE if event.type == pygame.KEYDOWN else False:
                 pygame.quit()
                 raise SystemExit
-            if level1_btn.is_clicked(event):
+            if play_btn.is_clicked(event):
                 return 1
 
         screen.fill(BLACK)
@@ -52,6 +52,6 @@ def run_menu(screen, clock):
         title = font_title.render("Pi Camp Pizza Delivery", True, WHITE)
         screen.blit(title, (SCREEN_W // 2 - title.get_width() // 2, 80))
 
-        level1_btn.draw(screen)
+        play_btn.draw(screen)
 
         pygame.display.flip()

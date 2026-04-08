@@ -1,26 +1,71 @@
-import pygame
+from grid  import TileMap, to_px
 from enemy import Enemy
 
-GROUND_Y = 620   # top of ground surface
+# Ground sits at grid row 10 → pixel y = 640
+GROUND_ROW = 10
+GROUND_Y   = to_px(GROUND_ROW)   # 640
 
 
-def create_level():
-    """Return (platforms, enemies) for level 1."""
-    platforms = []
-    enemies   = []
+class Level:
+    """Base class for all levels. Subclasses override build()."""
 
-    # ---- Flat ground — continuous except for the gap near the end -----------
-    platforms.append(pygame.Rect(0,    GROUND_Y, 2350, 80))   # long flat section
-    platforms.append(pygame.Rect(2500, GROUND_Y, 1000, 80))   # landing strip (gap is 150 px wide)
+    def build(self) -> tuple[TileMap, list[Enemy]]:
+        raise NotImplementedError
 
-    # ---- A handful of patrolling guards spread across the flat section ------
-    # (x, spawn_y, patrol_left, patrol_right, hp)
-    ground_enemies = [
-        ( 600, GROUND_Y - 46,  300, 1000, 60),
-        (1300, GROUND_Y - 46,  900, 1700, 60),
-        (2000, GROUND_Y - 46, 1500, 2300, 60),
-    ]
-    for ex, ey, el, er, ehp in ground_enemies:
-        enemies.append(Enemy(ex, ey, el, er, ehp))
+    @staticmethod
+    def _base_ground(tilemap: TileMap) -> None:
+        """Two ground segments with a 3-tile gap — shared by all levels."""
+        tilemap.add( 0, GROUND_ROW, 36, 2, "tiles/ground.png")   # cols  0–35
+        tilemap.add(39, GROUND_ROW, 16, 2, "tiles/ground.png")   # cols 39–54
 
-    return platforms, enemies
+
+class Level1(Level):
+    """Level 1.
+
+    Rough layout (S = stone platform, G = ground):
+      row  8:   SSS      SS
+      row  7:        SS
+      row 10: GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG   GGGGGGGGGGGGGGGG
+      row 11: GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG   GGGGGGGGGGGGGGGG
+    """
+
+    def build(self) -> tuple[TileMap, list[Enemy]]:
+        tilemap = TileMap()
+        self._base_ground(tilemap)
+
+        S = "tiles/stone.png"
+        tilemap.add( 3, 8, 3, 1, S)
+        tilemap.add( 9, 7, 2, 1, S)
+        tilemap.add(13, 8, 2, 1, S)
+
+        ey = GROUND_Y - 46
+        enemies = [
+            Enemy(to_px( 9), ey, to_px( 4), to_px(15), 60),
+            Enemy(to_px(20), ey, to_px(14), to_px(26), 60),
+            Enemy(to_px(31), ey, to_px(23), to_px(35), 60),
+        ]
+        return tilemap, enemies
+
+
+class Level2(Level):
+    """Level 2 — identical to level 1 for now; edit freely."""
+
+    def build(self) -> tuple[TileMap, list[Enemy]]:
+        tilemap = TileMap()
+        self._base_ground(tilemap)
+
+        S = "tiles/stone.png"
+        tilemap.add( 3, 8, 3, 1, S)
+        tilemap.add( 9, 7, 2, 1, S)
+        tilemap.add(13, 8, 2, 1, S)
+
+        ey = GROUND_Y - 46
+        enemies = [
+            Enemy(to_px( 9), ey, to_px( 4), to_px(15), 60),
+            Enemy(to_px(20), ey, to_px(14), to_px(26), 60),
+            Enemy(to_px(31), ey, to_px(23), to_px(35), 60),
+        ]
+        return tilemap, enemies
+
+
+LEVELS = [Level1(), Level2()]
