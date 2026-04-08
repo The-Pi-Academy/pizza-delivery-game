@@ -1,4 +1,3 @@
-import math
 import pygame
 from constants import (
     GRAVITY, JUMP_FORCE, MOVE_SPEED,
@@ -7,24 +6,15 @@ from constants import (
     WHITE, RED, DARK_RED, ORANGE, DK_ORANGE, YELLOW, CREAM,
     DK_BROWN, DK_GRAY, BROWN, GRAY, LT_GRAY, SKIN,
 )
-from arrow import Arrow
+from sword import Sword
+from bow import Bow
 
 
 class Player:
-    SWORD_DURATION    = 18
-    SWORD_COOLDOWN    = 28
-    ARROW_COOLDOWN    = 22
     INVINCIBLE_FRAMES = 55
-
-    _sword_img: pygame.Surface | None = None   # loaded once, shared across instances
-
-    @classmethod
-    def _load_sword(cls):
-        if cls._sword_img is None:
-            cls._sword_img = pygame.image.load("sword.png").convert_alpha()
+    PIT_DAMAGE        = 25
 
     def __init__(self, x, y):
-        self._load_sword()
         self.x  = float(x)
         self.y  = float(y)
         self.w  = 30
@@ -42,24 +32,14 @@ class Player:
         self.weapon = WEAPON_SWORD
         self.arrows = 25
 
-        # Sword
-        self.sword_active   = False
-        self.sword_timer    = 0
-        self.sword_cooldown = 0
-        self.sword_hit_set: set = set()
+        self.sword = Sword()
+        self.bow   = Bow()
 
         # Dash
         self.dashing       = False
         self.dash_timer    = 0
         self.dash_dir      = 1
         self.dash_cooldown = 0
-
-        # Bow
-        self.arrow_cooldown  = 0
-        self.bow_charging    = False
-        self.bow_charge      = 0
-        self.bow_charge_max  = 60   # frames to reach full power (~1 second)
-        self.bow_angle       = 0    # degrees; 0=horizontal, +90=straight up, -45=down
 
         # Invincibility frames
         self.invincible = 0
@@ -88,25 +68,24 @@ class Player:
             elif k in (pygame.K_LSHIFT, pygame.K_RSHIFT):
                 self._try_dash()
             elif k == pygame.K_1:
-                self.bow_charging = False
-                self.bow_charge   = 0
-                self.bow_angle    = 0
+                self.bow.cancel()
                 self.weapon = WEAPON_SWORD
             elif k == pygame.K_2:
                 self.weapon = WEAPON_BOW
             elif k == pygame.K_RETURN:
                 if self.weapon == WEAPON_SWORD:
-                    self._try_swing()
-                elif self.weapon == WEAPON_BOW and not self.bow_charging:
-                    if self.arrow_cooldown <= 0 and self.arrows > 0:
-                        self.bow_charging = True
-                        self.bow_charge   = 0
-                        self.bow_angle    = 0
-                        self.vx           = 0.0
+                    self.sword.try_swing()
+                elif self.weapon == WEAPON_BOW and not self.bow.charging:
+                    if self.bow.cooldown <= 0 and self.arrows > 0:
+                        self.bow.start_charge()
+                        self.vx = 0.0
 
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_RETURN and self.bow_charging:
-                self._release_shot(arrows_list)
+            if event.key == pygame.K_RETURN and self.bow.charging:
+                self.bow.release_shot(
+                    arrows_list, self.x, self.y, self.w, self.h, self.facing_right
+                )
+                self.arrows -= 1
 
     def _try_jump(self):
         if self.jump_count < 2:
@@ -121,45 +100,13 @@ class Player:
             self.dash_dir      = 1 if self.facing_right else -1
             self.dash_cooldown = DASH_COOLDOWN
 
-    def _try_swing(self):
-        if not self.sword_active and self.sword_cooldown <= 0:
-            self.sword_active   = True
-            self.sword_timer    = self.SWORD_DURATION
-            self.sword_cooldown = self.SWORD_COOLDOWN
-            self.sword_hit_set.clear()
-
-    def _release_shot(self, arrows_list):
-        power     = self.bow_charge / self.bow_charge_max
-        speed     = 5 + power * 11   # 5 at min charge, 16 at full charge
-        direction = 1 if self.facing_right else -1
-        rad       = math.radians(self.bow_angle)
-        arrow_vx  = speed * math.cos(rad) * direction
-        arrow_vy  = -speed * math.sin(rad)   # negative = upward in pygame
-        ox        = self.w if self.facing_right else -4
-        oy        = self.h // 2 - 3
-        arrows_list.append(Arrow(
-            self.x + ox, self.y + oy,
-            direction,
-            vx=arrow_vx,
-            vy=arrow_vy,
-        ))
-        self.arrows        -= 1
-        self.arrow_cooldown = self.ARROW_COOLDOWN
-        self.bow_charging   = False
-        self.bow_charge     = 0
-        self.bow_angle      = 0
-
     # -------------------------------------------------------------------------
     # Per-frame update
     # -------------------------------------------------------------------------
     def update(self, platforms, keys):
         # Horizontal input
-        if self.bow_charging:
+        if self.bow.charging:
             self.vx = 0.0
-            if keys[pygame.K_w]:
-                self.bow_angle = min(90,  self.bow_angle + 2)
-            if keys[pygame.K_s]:
-                self.bow_angle = max(-45, self.bow_angle - 2)
         elif not self.dashing:
             if keys[pygame.K_a]:
                 self.vx = -MOVE_SPEED
@@ -218,20 +165,11 @@ class Player:
                     self.vy = 0.0
 
         # Cooldowns
-        if self.dash_cooldown  > 0: self.dash_cooldown  -= 1
-        if self.sword_cooldown > 0: self.sword_cooldown -= 1
-        if self.arrow_cooldown > 0: self.arrow_cooldown -= 1
+        if self.dash_cooldown > 0: self.dash_cooldown -= 1
         if self.invincible     > 0: self.invincible     -= 1
 
-        # Bow charge
-        if self.bow_charging:
-            self.bow_charge = min(self.bow_charge + 1, self.bow_charge_max)
-
-        if self.sword_active:
-            self.sword_timer -= 1
-            if self.sword_timer <= 0:
-                self.sword_active = False
-                self.sword_hit_set.clear()
+        self.sword.update()
+        self.bow.update(keys)
 
         # Walk animation
         self.anim_timer += 1
@@ -242,12 +180,7 @@ class Player:
             self.walk_frame = 0
 
     def sword_rect(self):
-        if not self.sword_active:
-            return None
-        if self.facing_right:
-            return pygame.Rect(int(self.x + self.w), int(self.y + 8), 42, 28)
-        else:
-            return pygame.Rect(int(self.x - 42),     int(self.y + 8), 42, 28)
+        return self.sword.hitbox(self.x, self.y, self.w, self.facing_right)
 
     def take_damage(self, dmg):
         if self.invincible > 0:
@@ -270,18 +203,8 @@ class Player:
         fr      = self.facing_right
 
         # Power indicator (bow charging)
-        if self.bow_charging:
-            bar_w, bar_h = 50, 8
-            bar_x = sx + self.w // 2 - bar_w // 2
-            bar_y = sy - 20
-            power = self.bow_charge / self.bow_charge_max
-            fill  = int(bar_w * power)
-            # Colour shifts green → yellow → red as power increases
-            r = int(min(255, power * 2 * 255))
-            g = int(min(255, (1 - power) * 2 * 255))
-            pygame.draw.rect(surface, DK_GRAY, (bar_x,          bar_y, bar_w, bar_h))
-            pygame.draw.rect(surface, (r, g, 0), (bar_x,        bar_y, fill,  bar_h))
-            pygame.draw.rect(surface, WHITE,     (bar_x,        bar_y, bar_w, bar_h), 1)
+        if self.bow.charging:
+            self.bow.draw_power_bar(surface, sx, sy, self.w)
 
         # Pizza delivery bag (opposite side to facing direction)
         bag_x = sx - 10 if fr else sx + self.w + 2
@@ -310,51 +233,13 @@ class Player:
 
         # Arms + weapon
         if self.weapon == WEAPON_SWORD:
-            # Rotation: 0° idle, sweeps 180° clockwise over the attack duration
-            progress = (1.0 - self.sword_timer / self.SWORD_DURATION) if self.sword_active else 0.0
-            img = self._sword_img
-            iw, ih = img.get_size()
-
-            if fr:
-                angle    = -progress * 180.0                         # clockwise
-                draw_img = img
-                hand     = pygame.math.Vector2(sx + 28, sy + 20)
-                pygame.draw.rect(surface, SKIN, (sx + 22, sy + 18, 8, 6))  # arm
-            else:
-                angle    = progress * 180.0                          # mirrored sweep
-                draw_img = pygame.transform.flip(img, True, False)
-                hand     = pygame.math.Vector2(sx + 2,  sy + 20)
-                pygame.draw.rect(surface, SKIN, (sx, sy + 18, 8, 6))       # arm
-
-            # Rotate the sprite around its hilt (assumed at bottom-centre of image)
-            hilt_to_centre = pygame.math.Vector2(0, -ih / 2)
-            rotated        = pygame.transform.rotate(draw_img, angle)
-            rot_centre     = hand + hilt_to_centre.rotate(-angle)
-            blit_pos       = rot_centre - pygame.math.Vector2(rotated.get_size()) / 2
-            surface.blit(rotated, (int(blit_pos.x), int(blit_pos.y)))
+            self.sword.draw(surface, sx, sy, fr)
         elif self.weapon == WEAPON_BOW:
-            if fr:
-                pygame.draw.rect(surface, SKIN,  (sx + 22, sy + 18, 8, 6))
-                pygame.draw.arc(surface,  BROWN, (sx + 28, sy + 10, 10, 22), 0.2, math.pi - 0.2, 3)
-                pygame.draw.line(surface, CREAM, (sx + 29, sy + 12), (sx + 29, sy + 30), 1)
-            else:
-                pygame.draw.rect(surface, SKIN,  (sx,      sy + 18, 8, 6))
-                pygame.draw.arc(surface,  BROWN, (sx - 10, sy + 10, 10, 22), 0.2, math.pi - 0.2, 3)
-                pygame.draw.line(surface, CREAM, (sx - 2,  sy + 12), (sx - 2,  sy + 30), 1)
+            self.bow.draw(surface, sx, sy, fr)
+            self.bow.draw_crosshair(surface, sx, sy, self.w, self.h, fr)
         else:
             pygame.draw.rect(surface, SKIN, (sx + 22, sy + 18, 8, 8))
             pygame.draw.rect(surface, SKIN, (sx,      sy + 18, 8, 8))
-
-        # Bow crosshair
-        if self.weapon == WEAPON_BOW:
-            rad  = math.radians(self.bow_angle)
-            dirn = 1 if fr else -1
-            ch_x = sx + self.w // 2 + int(75 * math.cos(rad) * dirn)
-            ch_y = sy + self.h // 2 - int(75 * math.sin(rad))
-            arm  = 5
-            pygame.draw.line(surface, RED, (ch_x - arm, ch_y),       (ch_x + arm, ch_y),       1)
-            pygame.draw.line(surface, RED, (ch_x,       ch_y - arm), (ch_x,       ch_y + arm), 1)
-            pygame.draw.circle(surface, RED, (ch_x, ch_y), 3, 1)
 
         # Dash ghost trail
         if self.dashing:

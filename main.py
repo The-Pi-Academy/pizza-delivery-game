@@ -100,9 +100,9 @@ def main():
 
             # Sword hit (tracked per swing to avoid multi-hit)
             if sword_r and e.rect.colliderect(sword_r):
-                if id(e) not in player.sword_hit_set:
-                    player.sword_hit_set.add(id(e))
-                    e.take_damage(38)
+                if id(e) not in player.sword.hit_set:
+                    player.sword.hit_set.add(id(e))
+                    e.take_damage(player.sword.DAMAGE)
 
             # Arrow hit
             for a in arrows[:]:
@@ -113,7 +113,7 @@ def main():
 
             # Enemy melee attack on player
             if e.rect.colliderect(player.rect) and e.can_attack():
-                if player.take_damage(18):
+                if player.take_damage(e.DAMAGE):
                     e.do_attack()
                     if player.hp <= 0:
                         game_state = "dead"
@@ -125,7 +125,7 @@ def main():
 
         # Pit fall — deal damage and respawn slightly back
         if player.y > SCREEN_H + 60:
-            player.take_damage(25)
+            player.take_damage(Player.PIT_DAMAGE)
             player.x  = max(50, player.x - 150)
             player.y  = 520
             player.vy = 0

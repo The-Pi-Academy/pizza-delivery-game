@@ -112,10 +112,10 @@ def draw_hud(surface, player, font_sm):
     # Weapon label + attack-ready dot
     if player.weapon == WEAPON_SWORD:
         w_txt, w_col = "SWORD", GRAY
-        ready = player.sword_cooldown <= 0
+        ready = player.sword.cooldown <= 0
     elif player.weapon == WEAPON_BOW:
         w_txt, w_col = f"BOW    {player.arrows} arrows", BROWN
-        ready = player.arrow_cooldown <= 0
+        ready = player.bow.cooldown <= 0
     else:
         w_txt, w_col = "unarmed   press 1 or 2", LT_GRAY
         ready = True

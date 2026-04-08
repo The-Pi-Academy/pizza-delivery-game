@@ -6,6 +6,8 @@ from constants import (
 
 
 class Enemy:
+    DAMAGE = 18
+
     def __init__(self, x, y, left_bound, right_bound, hp=60):
         self.x = float(x)
         self.y = float(y)
