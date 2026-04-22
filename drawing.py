@@ -1,6 +1,6 @@
 import pygame
 from constants import (
-    SCREEN_W, SCREEN_H, DASH_COOLDOWN,
+    SCREEN_W, SCREEN_H, DASH_COOLDOWN, JETPACK_FUEL_MAX,
     WEAPON_SWORD, WEAPON_BOW,
     WHITE, RED, GREEN, YELLOW, ORANGE,
     BROWN, GRAY, DK_GRAY, LT_GRAY, PURPLE, LT_PURPLE,
@@ -78,11 +78,14 @@ def draw_background(surface, cam_x):
 # ---------------------------------------------------------------------------
 # Platform
 # ---------------------------------------------------------------------------
-def draw_platform(surface, plat, cam_x):
+def draw_platform(surface, plat, cam_x, cam_y=0):
     px = plat.x - cam_x
+    py = plat.y - cam_y
     if px + plat.width < -10 or px > SCREEN_W + 10:
         return
-    sx, sy, pw, ph = int(px), int(plat.y), plat.width, plat.height
+    if py + plat.height < -10 or py > SCREEN_H + 10:
+        return
+    sx, sy, pw, ph = int(px), int(py), plat.width, plat.height
     pygame.draw.rect(surface, STONE, (sx, sy, pw, ph))
     brick_h = 12
     for row in range(ph // brick_h + 1):
@@ -98,7 +101,7 @@ def draw_platform(surface, plat, cam_x):
 # ---------------------------------------------------------------------------
 # HUD
 # ---------------------------------------------------------------------------
-def draw_hud(surface, player, font_sm):
+def draw_hud(surface, player, font_sm, timer_seconds=0.0):
     # Health bar
     bar_x, bar_y, bar_w, bar_h = 18, 18, 210, 22
     pygame.draw.rect(surface, DARK_RED, (bar_x, bar_y, bar_w, bar_h))
@@ -133,17 +136,25 @@ def draw_hud(surface, player, font_sm):
     pygame.draw.rect(surface, WHITE, (d_x, d_y, d_w, d_h), 1)
     surface.blit(font_sm.render("DASH", True, WHITE), (d_x + d_w + 6, d_y - 1))
 
-    # Double-jump charge pips
-    for i in range(2):
-        col = YELLOW if i < (2 - player.jump_count) else DK_GRAY
-        pygame.draw.rect(surface, col,   (d_x + i * 20, d_y + 18, 14, 14))
-        pygame.draw.rect(surface, WHITE, (d_x + i * 20, d_y + 18, 14, 14), 1)
-    surface.blit(font_sm.render("JUMPS", True, WHITE), (d_x + 44, d_y + 18))
+    # Jetpack fuel bar (only when equipped)
+    if player.has_jetpack:
+        f_x, f_y, f_w, f_h = 18, d_y + 38, 150, 12
+        fuel_ratio = max(0.0, player.jetpack_fuel / JETPACK_FUEL_MAX)
+        pygame.draw.rect(surface, DK_GRAY, (f_x, f_y, f_w, f_h))
+        fuel_col = ORANGE if fuel_ratio > 0.25 else RED
+        pygame.draw.rect(surface, fuel_col, (f_x, f_y, int(f_w * fuel_ratio), f_h))
+        pygame.draw.rect(surface, WHITE, (f_x, f_y, f_w, f_h), 1)
+        surface.blit(font_sm.render("FUEL  E:drop", True, WHITE), (f_x + f_w + 6, f_y - 1))
+
+    # Timer (top-right)
+    from save import format_time
+    t_surf = font_sm.render(format_time(timer_seconds), True, WHITE)
+    surface.blit(t_surf, (SCREEN_W - t_surf.get_width() - 18, 18))
 
     # Controls reminder (bottom-left)
     for i, ln in enumerate([
-        "WASD: Move    SPACE: Jump (×2)    SHIFT: Dash",
-        "1: Sword   2: Bow   ENTER: Attack/Shoot",
+        "WASD: Move    SPACE: Jump / Jetpack    SHIFT: Dash",
+        "1: Sword   2: Bow   ENTER: Attack/Shoot   E: Jetpack",
     ]):
         surface.blit(font_sm.render(ln, True, (190, 190, 190)),
                      (16, SCREEN_H - 46 + i * 22))
@@ -152,7 +163,9 @@ def draw_hud(surface, player, font_sm):
 # ---------------------------------------------------------------------------
 # Game-state overlays
 # ---------------------------------------------------------------------------
-def draw_overlay(surface, font_big, font_md, font_sm, state, level_index=0, level_count=1):
+def draw_overlay(surface, font_big, font_md, font_sm, state, level_index=0, level_count=1,
+                 level_time=None, best_time=None):
+    from save import format_time
     overlay = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 145))
     surface.blit(overlay, (0, 0))
@@ -163,10 +176,20 @@ def draw_overlay(surface, font_big, font_md, font_sm, state, level_index=0, leve
         draw_centered(surface, "The pizza is ruined\u2026", font_md,  ORANGE, cx, 330)
         draw_centered(surface, "Press  R  to try again",    font_sm,  WHITE,  cx, 400)
     elif state == "victory":
-        draw_centered(surface, "PIZZA DELIVERED!",                        font_big, YELLOW, cx, 240)
-        draw_centered(surface, "The kingdom feasts tonight!",             font_md,  ORANGE, cx, 330)
+        draw_centered(surface, "PIZZA DELIVERED!",              font_big, YELLOW, cx, 220)
+        draw_centered(surface, "The kingdom feasts tonight!",   font_md,  ORANGE, cx, 305)
+        if level_time is not None:
+            is_new_best = best_time is None or level_time <= best_time
+            time_col = YELLOW if is_new_best else WHITE
+            time_label = f"Time:  {format_time(level_time)}"
+            if is_new_best:
+                time_label += "   NEW BEST!"
+            draw_centered(surface, time_label, font_md, time_col, cx, 365)
+            if best_time is not None and not is_new_best:
+                draw_centered(surface, f"Best:  {format_time(best_time)}", font_sm, GRAY, cx, 405)
+        next_y = 430 if level_time is not None and best_time is not None and level_time > best_time else 410
         if is_last_level:
-            draw_centered(surface, "Press  R  to play again from level 1", font_sm, WHITE, cx, 400)
+            draw_centered(surface, "Press  R  to play again from level 1", font_sm, WHITE, cx, next_y)
         else:
-            next_num = level_index + 2   # current is index+1, next is index+2
-            draw_centered(surface, f"Press  R  for level  {next_num}",    font_sm,  WHITE,  cx, 400)
+            next_num = level_index + 2
+            draw_centered(surface, f"Press  R  for level  {next_num}", font_sm, WHITE, cx, next_y)

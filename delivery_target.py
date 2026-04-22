@@ -15,9 +15,9 @@ class DeliveryTarget:
     def door_rect(self):
         return pygame.Rect(self.x + 20, self.y + 55, 28, 35)
 
-    def draw(self, surface, cam_x):
+    def draw(self, surface, cam_x, cam_y=0):
         sx = int(self.x - cam_x)
-        sy = int(self.y)
+        sy = int(self.y - cam_y)
         t  = pygame.time.get_ticks()
 
         # Foundation

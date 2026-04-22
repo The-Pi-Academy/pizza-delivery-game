@@ -1,5 +1,6 @@
 import pygame
 from constants import SCREEN_W, SCREEN_H, FPS, WHITE, BLACK
+from save import load_best_times, format_time
 
 
 class Button:
@@ -33,15 +34,22 @@ def run_menu(screen, clock, level_count: int) -> int:
     font_sub    = pygame.font.Font(None, 38)
     font_button = pygame.font.Font(None, 52)
 
-    cx      = SCREEN_W // 2
-    btn_w   = 200
-    btn_h   = 60
-    spacing = 80
-    start_y = SCREEN_H // 2
+    cx         = SCREEN_W // 2
+    btn_w      = 280
+    btn_h      = 60
+    spacing    = 80
+    start_y    = SCREEN_H // 2
+    best_times = load_best_times(level_count)
+
+    def make_label(i):
+        bt = best_times[i]
+        if bt is not None:
+            return f"Level {i + 1}   {format_time(bt)}"
+        return f"Level {i + 1}"
 
     buttons = [
         Button(cx, start_y + i * spacing, btn_w, btn_h,
-               f"Level {i + 1}", font_button)
+               make_label(i), font_button)
         for i in range(level_count)
     ]
 

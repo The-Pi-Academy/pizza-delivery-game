@@ -25,7 +25,7 @@ class Arrow:
         self.x += self.vx
         self.vy += 0.18   # slight arc
         self.y  += self.vy
-        if self.x < -50 or self.x > LEVEL_W + 50 or self.y > SCREEN_H + 50:
+        if self.x < -50 or self.x > LEVEL_W + 50 or self.y > SCREEN_H + 50 or self.y < -3000:
             self.active = False
             return
         for p in platforms:
@@ -33,9 +33,9 @@ class Arrow:
                 self.active = False
                 return
 
-    def draw(self, surface, cam_x):
+    def draw(self, surface, cam_x, cam_y=0):
         sx = int(self.x - cam_x)
-        sy = int(self.y)
+        sy = int(self.y - cam_y)
         # Shaft
         pygame.draw.line(surface, DK_BROWN, (sx, sy + 3), (sx + self.w - 6, sy + 3), 2)
         # Head and feather vary by direction

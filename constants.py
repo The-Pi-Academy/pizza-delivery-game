@@ -21,6 +21,11 @@ WEAPON_NONE  = 0
 WEAPON_SWORD = 1
 WEAPON_BOW   = 2
 
+# Jetpack
+JETPACK_FUEL_MAX = 400
+JETPACK_THRUST   = 1.0
+GAS_CAN_FUEL     = 200
+
 # Colours
 WHITE      = (255, 255, 255)
 BLACK      = (  0,   0,   0)

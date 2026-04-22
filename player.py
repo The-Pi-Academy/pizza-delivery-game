@@ -3,6 +3,7 @@ from constants import (
     GRAVITY, JUMP_FORCE, MOVE_SPEED,
     DASH_SPEED, DASH_FRAMES, DASH_COOLDOWN,
     WEAPON_NONE, WEAPON_SWORD, WEAPON_BOW,
+    JETPACK_THRUST, JETPACK_FUEL_MAX,
     WHITE, RED, DARK_RED, ORANGE, DK_ORANGE, YELLOW, CREAM,
     DK_BROWN, DK_GRAY, BROWN, GRAY, LT_GRAY, SKIN,
 )
@@ -43,6 +44,11 @@ class Player:
 
         # Invincibility frames
         self.invincible = 0
+
+        # Jetpack
+        self.has_jetpack       = False
+        self.jetpack_fuel      = 0
+        self.jetpack_thrusting = False
 
         # Animation
         self.anim_timer = 0
@@ -88,8 +94,8 @@ class Player:
                 self.arrows -= 1
 
     def _try_jump(self):
-        if self.jump_count < 2:
-            self.vy = JUMP_FORCE * (0.85 if self.jump_count == 1 else 1.0)
+        if self.jump_count < 1:
+            self.vy = JUMP_FORCE
             self.jump_count += 1
             self.on_ground = False
 
@@ -130,6 +136,13 @@ class Player:
         # Gravity
         if not self.dashing:
             self.vy = min(self.vy + GRAVITY, 22)
+
+        # Jetpack thrust (SPACE held, overrides gravity effect)
+        self.jetpack_thrusting = False
+        if self.has_jetpack and self.jetpack_fuel > 0 and keys[pygame.K_SPACE]:
+            self.vy = max(self.vy - JETPACK_THRUST, -16.0)
+            self.jetpack_fuel -= 1
+            self.jetpack_thrusting = True
 
         # Move X + clamp to level left edge
         self.x += self.vx
@@ -192,13 +205,13 @@ class Player:
     # -------------------------------------------------------------------------
     # Draw
     # -------------------------------------------------------------------------
-    def draw(self, surface, cam_x):
+    def draw(self, surface, cam_x, cam_y=0):
         # Flicker during invincibility
         if self.invincible > 0 and (self.invincible // 4) % 2 == 0:
             return
 
         sx      = int(self.x - cam_x)
-        sy      = int(self.y)
+        sy      = int(self.y - cam_y)
         leg_bob = [0, 4, 0, -4][self.walk_frame] if self.on_ground else 0
         fr      = self.facing_right
 
@@ -211,6 +224,16 @@ class Player:
         pygame.draw.rect(surface, DK_ORANGE, (bag_x,     sy + 14, 12, 20))
         pygame.draw.rect(surface, ORANGE,    (bag_x + 2, sy + 16,  8, 16))
         pygame.draw.circle(surface, YELLOW,  (bag_x + 6, sy + 20),  4)
+
+        # Jetpack tanks on back (drawn before body so body overlaps straps)
+        if self.has_jetpack:
+            jp_x = sx - 6 if fr else sx + self.w - 2
+            pygame.draw.rect(surface, DK_GRAY, (jp_x, sy + 14, 8, 22))
+            pygame.draw.rect(surface, GRAY,    (jp_x + 1, sy + 15, 6, 20))
+            pygame.draw.rect(surface, (50, 50, 50), (jp_x + 1, sy + 33, 6, 4))
+            if self.jetpack_thrusting:
+                pygame.draw.ellipse(surface, ORANGE, (jp_x,     sy + 36, 8, 10))
+                pygame.draw.ellipse(surface, YELLOW, (jp_x + 2, sy + 38, 4,  6))
 
         # Legs + boots
         pygame.draw.rect(surface, DK_BROWN,     (sx + 5,  sy + 34,  9, 12 + leg_bob))

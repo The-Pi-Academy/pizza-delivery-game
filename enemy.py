@@ -84,13 +84,13 @@ class Enemy:
     def do_attack(self):
         self.atk_cooldown = 80
 
-    def draw(self, surface, cam_x):
+    def draw(self, surface, cam_x, cam_y=0):
         if not self.active:
             return
         if self.hit_flash > 0 and (self.hit_flash // 3) % 2 == 0:
             return
         sx = int(self.x - cam_x)
-        sy = int(self.y)
+        sy = int(self.y - cam_y)
         leg_bob = [0, 3, 0, -3][self.walk_frame]
 
         # Legs

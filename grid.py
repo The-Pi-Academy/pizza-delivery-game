@@ -98,25 +98,29 @@ class TileMap:
     # ------------------------------------------------------------------
     # Rendering
     # ------------------------------------------------------------------
-    def draw(self, surface: pygame.Surface, cam_x: float) -> None:
+    def draw(self, surface: pygame.Surface, cam_x: float, cam_y: float = 0) -> None:
         from drawing import draw_platform   # late import — avoids circular dependency
         sw = surface.get_width()
+        sh = surface.get_height()
         for tile in self._tiles:
             px = tile.rect.x - cam_x
+            py = tile.rect.y - cam_y
             if px + tile.rect.width < -10 or px > sw + 10:
-                continue                    # off-screen, skip
+                continue
+            if py + tile.rect.height < -10 or py > sh + 10:
+                continue
             img = _load_tile_image(tile.image)
             if img is not None:
-                _blit_tiled(surface, img, tile.rect, cam_x)
+                _blit_tiled(surface, img, tile.rect, cam_x, cam_y)
             else:
-                draw_platform(surface, tile.rect, cam_x)
+                draw_platform(surface, tile.rect, cam_x, cam_y)
 
 
 def _blit_tiled(surface: pygame.Surface, img: pygame.Surface,
-                rect: pygame.Rect, cam_x: float) -> None:
-    """Tile *img* (TILE_SIZE × TILE_SIZE) across *rect*, offset by cam_x."""
+                rect: pygame.Rect, cam_x: float, cam_y: float = 0) -> None:
+    """Tile *img* (TILE_SIZE × TILE_SIZE) across *rect*, offset by camera."""
     sx = int(rect.x - cam_x)
-    sy = rect.y
+    sy = int(rect.y - cam_y)
     pw, ph = rect.width, rect.height
     for row in range(0, ph, TILE_SIZE):
         for col in range(0, pw, TILE_SIZE):
