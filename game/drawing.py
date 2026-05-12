@@ -1,3 +1,4 @@
+import math
 import pygame
 from constants import (
     SCREEN_W, SCREEN_H, DASH_COOLDOWN, JETPACK_FUEL_MAX,
@@ -158,6 +159,40 @@ def draw_hud(surface, player, font_sm, timer_seconds=0.0):
     ]):
         surface.blit(font_sm.render(ln, True, (190, 190, 190)),
                      (16, SCREEN_H - 46 + i * 22))
+
+
+# ---------------------------------------------------------------------------
+# Developer grid overlay
+# ---------------------------------------------------------------------------
+_dev_font: pygame.font.Font | None = None
+
+
+def draw_grid_overlay(surface: pygame.Surface, cam_x: float, cam_y: float) -> None:
+    from grid import TILE_SIZE
+
+    global _dev_font
+    if _dev_font is None:
+        _dev_font = pygame.font.Font(None, 16)
+
+    first_col = math.floor(cam_x / TILE_SIZE)
+    last_col  = math.floor((cam_x + SCREEN_W) / TILE_SIZE) + 1
+    first_row = math.floor(cam_y / TILE_SIZE)
+    last_row  = math.floor((cam_y + SCREEN_H) / TILE_SIZE) + 1
+
+    line_col = (180, 180, 0)
+    for col in range(first_col, last_col + 1):
+        sx = int(col * TILE_SIZE - cam_x)
+        pygame.draw.line(surface, line_col, (sx, 0), (sx, SCREEN_H))
+    for row in range(first_row, last_row + 1):
+        sy = int(row * TILE_SIZE - cam_y)
+        pygame.draw.line(surface, line_col, (0, sy), (SCREEN_W, sy))
+
+    for col in range(first_col, last_col):
+        for row in range(first_row, last_row):
+            sx = int(col * TILE_SIZE - cam_x) + 3
+            sy = int(row * TILE_SIZE - cam_y) + 3
+            lbl = _dev_font.render(f"{col},{row}", True, (255, 255, 100), (0, 0, 0))
+            surface.blit(lbl, (sx, sy))
 
 
 # ---------------------------------------------------------------------------

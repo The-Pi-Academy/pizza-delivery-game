@@ -9,7 +9,7 @@ Controls:
   2           - Equip Bow
   ENTER       - Swing sword / Shoot arrow
   E           - Pick up Jetpack / Drop Jetpack
-  R           - Restart (when dead) / Next level (when victorious)
+  R           - Restart current level / Next level (when victorious)
   ESC         - Quit
 """
 
@@ -21,7 +21,7 @@ from player          import Player
 from levels          import LEVELS
 from jetpack         import JetpackItem
 from drawing         import (
-    draw_background, draw_hud, draw_overlay,
+    draw_background, draw_hud, draw_overlay, draw_grid_overlay,
 )
 from menu            import run_menu
 from save            import load_best_times, save_best_times
@@ -49,7 +49,7 @@ def main():
     font_md  = pygame.font.Font(None, 52)
     font_sm  = pygame.font.Font(None, 24)
 
-    level_index = run_menu(screen, clock, len(LEVELS))
+    level_index, dev_mode = run_menu(screen, clock, len(LEVELS))
     best_times  = load_best_times(len(LEVELS))
     tilemap, enemies, player, arrows, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
     level_time  = None   # set on victory
@@ -67,13 +67,13 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 if event.key == pygame.K_r:
-                    if game_state == "dead":
+                    if game_state in ("dead", "playing"):
                         tilemap, enemies, player, arrows, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
                         level_time = None
                         game_state = "playing"
                     elif game_state == "victory":
                         if level_index >= len(LEVELS) - 1:
-                            level_index = run_menu(screen, clock, len(LEVELS))
+                            level_index, dev_mode = run_menu(screen, clock, len(LEVELS), dev_mode)
                         else:
                             level_index += 1
                         tilemap, enemies, player, arrows, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
@@ -113,6 +113,8 @@ def main():
             for a in arrows:
                 a.draw(screen, camera_x, camera_y)
             player.draw(screen, camera_x, camera_y)
+            if dev_mode:
+                draw_grid_overlay(screen, camera_x, camera_y)
             draw_hud(screen, player, font_sm, timer_seconds=level_time or 0.0)
             draw_overlay(screen, font_big, font_md, font_sm, game_state, level_index, len(LEVELS),
                          level_time=level_time, best_time=best_times[level_index])
@@ -207,6 +209,8 @@ def main():
         for a in arrows:
             a.draw(screen, camera_x, camera_y)
         player.draw(screen, camera_x, camera_y)
+        if dev_mode:
+            draw_grid_overlay(screen, camera_x, camera_y)
         running_time = (pygame.time.get_ticks() - start_ticks) / 1000.0
         draw_hud(screen, player, font_sm, timer_seconds=running_time)
 

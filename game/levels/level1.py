@@ -18,9 +18,8 @@ class Level1(Level):
         tilemap = TileMap()
 
         S = "tiles/stone.png"
-        tilemap.add( 3, 8, 3, 1, S)
-        tilemap.add( 9, 7, 2, 1, S)
-        tilemap.add(13, 8, 2, 1, S)
+        tilemap.add( 3, 8, 12, 1, S)
+        tilemap.add( 17, GROUND_ROW, 12, 1, S)
 
         tilemap.add( 0, GROUND_ROW, 36, 2, "tiles/ground.png")   # cols  0–35
         tilemap.add(39, GROUND_ROW, 16, 2, "tiles/ground.png")   # cols 39–54
