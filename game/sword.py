@@ -37,33 +37,33 @@ class Sword:
                 self.active = False
                 self.hit_set.clear()
 
-    def hitbox(self, x, y, w, facing_right):
+    def hitbox(self, x, y, width, facing_right):
         """Returns the sword's hit rect, or None when not active."""
         if not self.active:
             return None
         if facing_right:
-            return pygame.Rect(int(x + w), int(y + 8), 42, 28)
+            return pygame.Rect(int(x + width), int(y + 8), 42, 28)
         else:
             return pygame.Rect(int(x - 42), int(y + 8), 42, 28)
 
-    def draw(self, surface, sx, sy, facing_right):
-        img      = self._img
-        _iw, ih  = img.get_size()
-        progress = (1.0 - self.timer / self.DURATION) if self.active else 0.0
+    def draw(self, surface, screen_x, screen_y, facing_right):
+        sword_image  = self._img
+        _, image_height = sword_image.get_size()
+        progress     = (1.0 - self.timer / self.DURATION) if self.active else 0.0
 
         if facing_right:
-            angle    = -progress * 180.0
-            draw_img = img
-            hand     = pygame.math.Vector2(sx + 28, sy + 20)
-            pygame.draw.rect(surface, SKIN, (sx + 22, sy + 18, 8, 6))
+            angle         = -progress * 180.0
+            sword_surface = sword_image
+            hand_position = pygame.math.Vector2(screen_x + 28, screen_y + 20)
+            pygame.draw.rect(surface, SKIN, (screen_x + 22, screen_y + 18, 8, 6))
         else:
-            angle    = progress * 180.0
-            draw_img = pygame.transform.flip(img, True, False)
-            hand     = pygame.math.Vector2(sx + 2, sy + 20)
-            pygame.draw.rect(surface, SKIN, (sx, sy + 18, 8, 6))
+            angle         = progress * 180.0
+            sword_surface = pygame.transform.flip(sword_image, True, False)
+            hand_position = pygame.math.Vector2(screen_x + 2, screen_y + 20)
+            pygame.draw.rect(surface, SKIN, (screen_x, screen_y + 18, 8, 6))
 
-        hilt_to_centre = pygame.math.Vector2(0, -ih / 2)
-        rotated        = pygame.transform.rotate(draw_img, angle)
-        rot_centre     = hand + hilt_to_centre.rotate(-angle)
-        blit_pos       = rot_centre - pygame.math.Vector2(rotated.get_size()) / 2
-        surface.blit(rotated, (int(blit_pos.x), int(blit_pos.y)))
+        hilt_to_center  = pygame.math.Vector2(0, -image_height / 2)
+        rotated_sword   = pygame.transform.rotate(sword_surface, angle)
+        rotation_center = hand_position + hilt_to_center.rotate(-angle)
+        draw_position   = rotation_center - pygame.math.Vector2(rotated_sword.get_size()) / 2
+        surface.blit(rotated_sword, (int(draw_position.x), int(draw_position.y)))

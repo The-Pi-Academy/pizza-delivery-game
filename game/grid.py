@@ -27,10 +27,10 @@ def _load_tile_image(filename: str) -> pygame.Surface | None:
     if filename in _image_cache:
         return _image_cache[filename]
     if os.path.isfile(filename):
-        raw = pygame.image.load(filename).convert_alpha()
-        img = pygame.transform.scale(raw, (TILE_SIZE, TILE_SIZE))
-        _image_cache[filename] = img
-        return img
+        raw_image    = pygame.image.load(filename).convert_alpha()
+        scaled_image = pygame.transform.scale(raw_image, (TILE_SIZE, TILE_SIZE))
+        _image_cache[filename] = scaled_image
+        return scaled_image
     _image_cache[filename] = None
     return None
 
@@ -38,15 +38,15 @@ def _load_tile_image(filename: str) -> pygame.Surface | None:
 # ---------------------------------------------------------------------------
 # Coordinate helpers
 # ---------------------------------------------------------------------------
-def tile_rect(gx: int, gy: int, gw: int = 1, gh: int = 1) -> pygame.Rect:
+def tile_rect(grid_x: int, grid_y: int, grid_width: int = 1, grid_height: int = 1) -> pygame.Rect:
     """Convert grid coordinates to a pixel-space pygame.Rect.
 
     Parameters
     ----------
-    gx, gy : int   Grid column / row of the top-left corner.
-    gw, gh : int   Width and height in grid cells (default 1).
+    grid_x, grid_y     : int   Grid column / row of the top-left corner.
+    grid_width, grid_height : int   Width and height in grid cells (default 1).
     """
-    return pygame.Rect(gx * TILE_SIZE, gy * TILE_SIZE, gw * TILE_SIZE, gh * TILE_SIZE)
+    return pygame.Rect(grid_x * TILE_SIZE, grid_y * TILE_SIZE, grid_width * TILE_SIZE, grid_height * TILE_SIZE)
 
 
 def to_px(grid_units: int) -> int:
@@ -75,17 +75,17 @@ class TileMap:
     # ------------------------------------------------------------------
     # Building the map
     # ------------------------------------------------------------------
-    def add(self, gx: int, gy: int, gw: int, gh: int, image: str) -> None:
-        """Add a tile block at grid position (gx, gy) spanning gw × gh cells.
+    def add(self, grid_x: int, grid_y: int, grid_width: int, grid_height: int, image: str) -> None:
+        """Add a tile block at grid position (grid_x, grid_y) spanning grid_width × grid_height cells.
 
         Parameters
         ----------
-        gx, gy    : int   Grid column / row of the top-left corner.
-        gw, gh    : int   Size in grid cells.
-        image     : str   PNG filename (e.g. "tiles/stone.png").
-                          Falls back to the brick primitive if the file is missing.
+        grid_x, grid_y         : int   Grid column / row of the top-left corner.
+        grid_width, grid_height : int   Size in grid cells.
+        image                  : str   PNG filename (e.g. "tiles/stone.png").
+                                       Falls back to the brick primitive if the file is missing.
         """
-        self._tiles.append(Tile(tile_rect(gx, gy, gw, gh), image))
+        self._tiles.append(Tile(tile_rect(grid_x, grid_y, grid_width, grid_height), image))
 
     def add_range(self, x1: int, y1: int, x2: int, y2: int, image: str) -> None:
         """Add a tile block spanning from grid cell (x1, y1) to (x2, y2) inclusive.
@@ -116,34 +116,35 @@ class TileMap:
     # ------------------------------------------------------------------
     def draw(self, surface: pygame.Surface, cam_x: float, cam_y: float = 0) -> None:
         from drawing import draw_platform   # late import — avoids circular dependency
-        sw = surface.get_width()
-        sh = surface.get_height()
+        surface_width  = surface.get_width()
+        surface_height = surface.get_height()
         for tile in self._tiles:
-            px = tile.rect.x - cam_x
-            py = tile.rect.y - cam_y
-            if px + tile.rect.width < -10 or px > sw + 10:
+            pixel_x = tile.rect.x - cam_x
+            pixel_y = tile.rect.y - cam_y
+            if pixel_x + tile.rect.width < -10 or pixel_x > surface_width + 10:
                 continue
-            if py + tile.rect.height < -10 or py > sh + 10:
+            if pixel_y + tile.rect.height < -10 or pixel_y > surface_height + 10:
                 continue
-            img = _load_tile_image(tile.image)
-            if img is not None:
-                _blit_tiled(surface, img, tile.rect, cam_x, cam_y)
+            tile_image = _load_tile_image(tile.image)
+            if tile_image is not None:
+                _blit_tiled(surface, tile_image, tile.rect, cam_x, cam_y)
             else:
                 draw_platform(surface, tile.rect, cam_x, cam_y)
 
 
-def _blit_tiled(surface: pygame.Surface, img: pygame.Surface,
+def _blit_tiled(surface: pygame.Surface, tile_image: pygame.Surface,
                 rect: pygame.Rect, cam_x: float, cam_y: float = 0) -> None:
-    """Tile *img* (TILE_SIZE × TILE_SIZE) across *rect*, offset by camera."""
-    sx = int(rect.x - cam_x)
-    sy = int(rect.y - cam_y)
-    pw, ph = rect.width, rect.height
-    for row in range(0, ph, TILE_SIZE):
-        for col in range(0, pw, TILE_SIZE):
-            clip_w = min(TILE_SIZE, pw - col)
-            clip_h = min(TILE_SIZE, ph - row)
-            dest   = (sx + col, sy + row)
-            if clip_w == TILE_SIZE and clip_h == TILE_SIZE:
-                surface.blit(img, dest)
+    """Tile *tile_image* (TILE_SIZE × TILE_SIZE) across *rect*, offset by camera."""
+    screen_x    = int(rect.x - cam_x)
+    screen_y    = int(rect.y - cam_y)
+    tile_width  = rect.width
+    tile_height = rect.height
+    for y_offset in range(0, tile_height, TILE_SIZE):
+        for x_offset in range(0, tile_width, TILE_SIZE):
+            clip_width  = min(TILE_SIZE, tile_width  - x_offset)
+            clip_height = min(TILE_SIZE, tile_height - y_offset)
+            draw_position = (screen_x + x_offset, screen_y + y_offset)
+            if clip_width == TILE_SIZE and clip_height == TILE_SIZE:
+                surface.blit(tile_image, draw_position)
             else:
-                surface.blit(img, dest, (0, 0, clip_w, clip_h))
+                surface.blit(tile_image, draw_position, (0, 0, clip_width, clip_height))

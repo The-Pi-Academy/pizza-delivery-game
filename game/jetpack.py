@@ -1,5 +1,5 @@
 import pygame
-from constants import DK_GRAY, GRAY, ORANGE, YELLOW, SCREEN_W, SCREEN_H
+from constants import DK_GRAY, GRAY, ORANGE, YELLOW, SCREEN_WIDTH, SCREEN_HEIGHT
 
 
 class JetpackItem:
@@ -18,22 +18,22 @@ class JetpackItem:
     def draw(self, surface: pygame.Surface, cam_x: float, cam_y: float = 0) -> None:
         if not self.active:
             return
-        sx = int(self.x - cam_x)
-        sy = int(self.y - cam_y)
-        if sx + self.W < -10 or sx > SCREEN_W + 10 or sy + self.H < -10 or sy > SCREEN_H + 10:
+        screen_x = int(self.x - cam_x)
+        screen_y = int(self.y - cam_y)
+        if screen_x + self.W < -10 or screen_x > SCREEN_WIDTH + 10 or screen_y + self.H < -10 or screen_y > SCREEN_HEIGHT + 10:
             return
         # Tank body
-        pygame.draw.rect(surface, DK_GRAY, (sx + 4, sy + 2, 16, 26))
-        pygame.draw.rect(surface, GRAY,    (sx + 6, sy + 4, 12, 22))
+        pygame.draw.rect(surface, DK_GRAY, (screen_x + 4, screen_y + 2, 16, 26))
+        pygame.draw.rect(surface, GRAY,    (screen_x + 6, screen_y + 4, 12, 22))
         # Nozzles
-        pygame.draw.rect(surface, (50, 50, 50), (sx + 5,  sy + 26, 5, 6))
-        pygame.draw.rect(surface, (50, 50, 50), (sx + 14, sy + 26, 5, 6))
+        pygame.draw.rect(surface, (50, 50, 50), (screen_x + 5,  screen_y + 26, 5, 6))
+        pygame.draw.rect(surface, (50, 50, 50), (screen_x + 14, screen_y + 26, 5, 6))
         # Shoulder strap
-        pygame.draw.rect(surface, (100, 70, 40), (sx + 8, sy, 8, 4))
+        pygame.draw.rect(surface, (100, 70, 40), (screen_x + 8, screen_y, 8, 4))
         # Flame hint at nozzles
-        pygame.draw.circle(surface, ORANGE, (sx + 7,  sy + 32), 3)
-        pygame.draw.circle(surface, ORANGE, (sx + 17, sy + 32), 3)
+        pygame.draw.circle(surface, ORANGE, (screen_x + 7,  screen_y + 32), 3)
+        pygame.draw.circle(surface, ORANGE, (screen_x + 17, screen_y + 32), 3)
         # [E] prompt above
-        font = pygame.font.Font(None, 20)
-        surf = font.render("[E]", True, YELLOW)
-        surface.blit(surf, (sx + 4, sy - 16))
+        prompt_font   = pygame.font.Font(None, 20)
+        pickup_prompt = prompt_font.render("[E]", True, YELLOW)
+        surface.blit(pickup_prompt, (screen_x + 4, screen_y - 16))

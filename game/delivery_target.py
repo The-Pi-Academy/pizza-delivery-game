@@ -16,62 +16,62 @@ class DeliveryTarget:
         return pygame.Rect(self.x + 20, self.y + 55, 28, 35)
 
     def draw(self, surface, cam_x, cam_y=0):
-        sx = int(self.x - cam_x)
-        sy = int(self.y - cam_y)
-        t  = pygame.time.get_ticks()
+        screen_x     = int(self.x - cam_x)
+        screen_y     = int(self.y - cam_y)
+        current_time = pygame.time.get_ticks()
 
         # Foundation
-        pygame.draw.rect(surface, DK_STONE, (sx - 5, sy + 88, 90, 8))
+        pygame.draw.rect(surface, DK_STONE, (screen_x - 5, screen_y + 88, 90, 8))
 
         # Main tower body
-        pygame.draw.rect(surface, STONE, (sx, sy + 20, 80, 70))
+        pygame.draw.rect(surface, STONE, (screen_x, screen_y + 20, 80, 70))
         for row in range(8):
-            ry     = sy + 22 + row * 9
-            offset = 12 if row % 2 else 0
+            brick_row_y  = screen_y + 22 + row * 9
+            brick_offset = 12 if row % 2 else 0
             for col in range(4):
-                pygame.draw.rect(surface, DK_STONE, (sx + col * 20 + offset, ry, 18, 8), 1)
+                pygame.draw.rect(surface, DK_STONE, (screen_x + col * 20 + brick_offset, brick_row_y, 18, 8), 1)
 
         # Battlement top
-        pygame.draw.rect(surface, DK_STONE, (sx, sy + 6, 80, 16))
+        pygame.draw.rect(surface, DK_STONE, (screen_x, screen_y + 6, 80, 16))
         for i in range(5):
-            pygame.draw.rect(surface, DK_STONE, (sx + i * 16, sy - 6, 11, 14))
+            pygame.draw.rect(surface, DK_STONE, (screen_x + i * 16, screen_y - 6, 11, 14))
 
         # Door arch
-        pygame.draw.rect(surface,   DK_BROWN,      (sx + 20, sy + 55, 28, 35))
-        pygame.draw.ellipse(surface, DK_BROWN,      (sx + 19, sy + 44, 30, 20))
-        pygame.draw.rect(surface,   (40, 30, 15),   (sx + 23, sy + 57,  7, 33))
-        pygame.draw.rect(surface,   (40, 30, 15),   (sx + 33, sy + 57,  7, 33))
+        pygame.draw.rect(surface,   DK_BROWN,      (screen_x + 20, screen_y + 55, 28, 35))
+        pygame.draw.ellipse(surface, DK_BROWN,      (screen_x + 19, screen_y + 44, 30, 20))
+        pygame.draw.rect(surface,   (40, 30, 15),   (screen_x + 23, screen_y + 57,  7, 33))
+        pygame.draw.rect(surface,   (40, 30, 15),   (screen_x + 33, screen_y + 57,  7, 33))
 
         # Windows
-        pygame.draw.rect(surface, LT_BLUE, (sx + 8,  sy + 30, 14, 16))
-        pygame.draw.rect(surface, LT_BLUE, (sx + 58, sy + 30, 14, 16))
-        pygame.draw.line(surface, DK_STONE, (sx + 15, sy + 30), (sx + 15, sy + 46), 1)
-        pygame.draw.line(surface, DK_STONE, (sx + 65, sy + 30), (sx + 65, sy + 46), 1)
+        pygame.draw.rect(surface, LT_BLUE, (screen_x + 8,  screen_y + 30, 14, 16))
+        pygame.draw.rect(surface, LT_BLUE, (screen_x + 58, screen_y + 30, 14, 16))
+        pygame.draw.line(surface, DK_STONE, (screen_x + 15, screen_y + 30), (screen_x + 15, screen_y + 46), 1)
+        pygame.draw.line(surface, DK_STONE, (screen_x + 65, screen_y + 30), (screen_x + 65, screen_y + 46), 1)
 
         # Flag pole + animated flag
-        pygame.draw.rect(surface, DK_STONE, (sx + 37, sy - 30, 3, 30))
-        flag_wave = int(math.sin(t * 0.004) * 3)
+        pygame.draw.rect(surface, DK_STONE, (screen_x + 37, screen_y - 30, 3, 30))
+        flag_wave = int(math.sin(current_time * 0.004) * 3)
         pygame.draw.polygon(surface, RED, [
-            (sx + 40, sy - 28),
-            (sx + 55, sy - 23 + flag_wave),
-            (sx + 40, sy - 18),
+            (screen_x + 40, screen_y - 28),
+            (screen_x + 55, screen_y - 23 + flag_wave),
+            (screen_x + 40, screen_y - 18),
         ])
 
         # Side towers
-        for tx in [sx - 18, sx + 65]:
-            pygame.draw.rect(surface, STONE,    (tx, sy + 30, 22, 60))
-            pygame.draw.rect(surface, DK_STONE, (tx, sy + 18, 22, 14))
+        for side_tower_x in [screen_x - 18, screen_x + 65]:
+            pygame.draw.rect(surface, STONE,    (side_tower_x, screen_y + 30, 22, 60))
+            pygame.draw.rect(surface, DK_STONE, (side_tower_x, screen_y + 18, 22, 14))
             for i in range(3):
-                pygame.draw.rect(surface, DK_STONE, (tx + i * 8, sy + 10, 6, 10))
+                pygame.draw.rect(surface, DK_STONE, (side_tower_x + i * 8, screen_y + 10, 6, 10))
 
         # Delivery indicator (bouncing arrow + label)
         if not self.delivered:
-            bounce  = int(math.sin(t * 0.005) * 6)
-            font_sm = pygame.font.Font(None, 22)
-            lbl     = font_sm.render("DELIVER HERE!", True, YELLOW)
-            surface.blit(lbl, (sx + 40 - lbl.get_width() // 2, sy - 55 + bounce))
+            bounce        = int(math.sin(current_time * 0.005) * 6)
+            small_font    = pygame.font.Font(None, 22)
+            indicator_label = small_font.render("DELIVER HERE!", True, YELLOW)
+            surface.blit(indicator_label, (screen_x + 40 - indicator_label.get_width() // 2, screen_y - 55 + bounce))
             pygame.draw.polygon(surface, YELLOW, [
-                (sx + 40, sy - 35 + bounce),
-                (sx + 34, sy - 44 + bounce),
-                (sx + 46, sy - 44 + bounce),
+                (screen_x + 40, screen_y - 35 + bounce),
+                (screen_x + 34, screen_y - 44 + bounce),
+                (screen_x + 46, screen_y - 44 + bounce),
             ])

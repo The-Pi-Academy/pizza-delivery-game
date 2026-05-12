@@ -3,10 +3,10 @@ import pygame
 pygame.init()
 
 # Screen / timing
-SCREEN_W = 1280
-SCREEN_H  = 720
-FPS       = 60
-LEVEL_W   = 55 * 64   # 3520 — 55 grid tiles wide
+SCREEN_WIDTH  = 1280
+SCREEN_HEIGHT = 720
+FPS           = 60
+LEVEL_WIDTH   = 55 * 64   # 3520 — 55 grid tiles wide
 
 # Physics
 GRAVITY       = 0.78

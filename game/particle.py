@@ -3,28 +3,28 @@ import random
 
 
 class Particle:
-    __slots__ = ('x', 'y', 'vx', 'vy', 'colour', 'life', 'max_life', 'size')
+    __slots__ = ('x', 'y', 'speed_x', 'speed_y', 'colour', 'life', 'max_life', 'size')
 
-    def __init__(self, x, y, colour, vx, vy, life, size=4):
-        self.x, self.y   = float(x), float(y)
-        self.vx, self.vy = vx, vy
-        self.colour      = colour
-        self.life        = life
-        self.max_life    = life
-        self.size        = size
+    def __init__(self, x, y, colour, speed_x, speed_y, life, size=4):
+        self.x, self.y         = float(x), float(y)
+        self.speed_x, self.speed_y = speed_x, speed_y
+        self.colour            = colour
+        self.life              = life
+        self.max_life          = life
+        self.size              = size
 
     def update(self):
-        self.x  += self.vx
-        self.y  += self.vy
-        self.vy += 0.25
-        self.life -= 1
+        self.x       += self.speed_x
+        self.y       += self.speed_y
+        self.speed_y += 0.25
+        self.life    -= 1
 
     def draw(self, surface, cam_x):
-        ratio = self.life / self.max_life
-        r, g, b = self.colour
-        col = (int(r * ratio), int(g * ratio), int(b * ratio))
-        sz  = max(1, int(self.size * ratio))
-        pygame.draw.circle(surface, col, (int(self.x - cam_x), int(self.y)), sz)
+        life_ratio    = self.life / self.max_life
+        red, green, blue = self.colour
+        faded_color   = (int(red * life_ratio), int(green * life_ratio), int(blue * life_ratio))
+        current_size  = max(1, int(self.size * life_ratio))
+        pygame.draw.circle(surface, faded_color, (int(self.x - cam_x), int(self.y)), current_size)
 
 
 def spawn_hit_particles(particles, x, y, colour, count=8):

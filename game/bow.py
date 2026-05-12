@@ -26,15 +26,15 @@ class Bow:
         self.angle    = 0
 
     def release_shot(self, arrows_list, x, y, w, h, facing_right):
-        power     = self.charge / self.CHARGE_MAX
-        speed     = 5 + power * 11  # 5 at min charge, 16 at full charge
-        direction = 1 if facing_right else -1
-        rad       = math.radians(self.angle)
-        vx        = speed * math.cos(rad) * direction
-        vy        = -speed * math.sin(rad)  # negative = upward in pygame
-        ox        = w if facing_right else -4
-        oy        = h // 2 - 3
-        arrows_list.append(Arrow(x + ox, y + oy, direction, vx=vx, vy=vy))
+        charge_ratio   = self.charge / self.CHARGE_MAX
+        speed          = 5 + charge_ratio * 11  # 5 at min charge, 16 at full charge
+        direction      = 1 if facing_right else -1
+        angle_radians  = math.radians(self.angle)
+        speed_x        = speed * math.cos(angle_radians) * direction
+        speed_y        = -speed * math.sin(angle_radians)  # negative = upward in pygame
+        offset_x       = w if facing_right else -4
+        offset_y       = h // 2 - 3
+        arrows_list.append(Arrow(x + offset_x, y + offset_y, direction, speed_x=speed_x, speed_y=speed_y))
         self.cooldown = self.ARROW_COOLDOWN
         self.charging = False
         self.charge   = 0
@@ -50,34 +50,35 @@ class Bow:
                 self.angle = max(-45, self.angle - 2)
             self.charge = min(self.charge + 1, self.CHARGE_MAX)
 
-    def draw(self, surface, sx, sy, facing_right):
+    def draw(self, surface, screen_x, screen_y, facing_right):
         if facing_right:
-            pygame.draw.rect(surface, SKIN,  (sx + 22, sy + 18, 8, 6))
-            pygame.draw.arc(surface,  BROWN, (sx + 28, sy + 10, 10, 22), 0.2, math.pi - 0.2, 3)
-            pygame.draw.line(surface, CREAM, (sx + 29, sy + 12), (sx + 29, sy + 30), 1)
+            pygame.draw.rect(surface, SKIN,  (screen_x + 22, screen_y + 18, 8, 6))
+            pygame.draw.arc(surface,  BROWN, (screen_x + 28, screen_y + 10, 10, 22), 0.2, math.pi - 0.2, 3)
+            pygame.draw.line(surface, CREAM, (screen_x + 29, screen_y + 12), (screen_x + 29, screen_y + 30), 1)
         else:
-            pygame.draw.rect(surface, SKIN,  (sx,      sy + 18, 8, 6))
-            pygame.draw.arc(surface,  BROWN, (sx - 10, sy + 10, 10, 22), 0.2, math.pi - 0.2, 3)
-            pygame.draw.line(surface, CREAM, (sx - 2,  sy + 12), (sx - 2,  sy + 30), 1)
+            pygame.draw.rect(surface, SKIN,  (screen_x,      screen_y + 18, 8, 6))
+            pygame.draw.arc(surface,  BROWN, (screen_x - 10, screen_y + 10, 10, 22), 0.2, math.pi - 0.2, 3)
+            pygame.draw.line(surface, CREAM, (screen_x - 2,  screen_y + 12), (screen_x - 2,  screen_y + 30), 1)
 
-    def draw_crosshair(self, surface, sx, sy, w, h, facing_right):
-        rad  = math.radians(self.angle)
-        dirn = 1 if facing_right else -1
-        ch_x = sx + w // 2 + int(75 * math.cos(rad) * dirn)
-        ch_y = sy + h // 2 - int(75 * math.sin(rad))
-        arm  = 5
-        pygame.draw.line(surface, RED, (ch_x - arm, ch_y),       (ch_x + arm, ch_y),       1)
-        pygame.draw.line(surface, RED, (ch_x,       ch_y - arm), (ch_x,       ch_y + arm), 1)
-        pygame.draw.circle(surface, RED, (ch_x, ch_y), 3, 1)
+    def draw_crosshair(self, surface, screen_x, screen_y, player_width, player_height, facing_right):
+        angle_radians = math.radians(self.angle)
+        direction     = 1 if facing_right else -1
+        crosshair_x   = screen_x + player_width  // 2 + int(75 * math.cos(angle_radians) * direction)
+        crosshair_y   = screen_y + player_height // 2 - int(75 * math.sin(angle_radians))
+        arm_length    = 5
+        pygame.draw.line(surface, RED, (crosshair_x - arm_length, crosshair_y), (crosshair_x + arm_length, crosshair_y), 1)
+        pygame.draw.line(surface, RED, (crosshair_x, crosshair_y - arm_length), (crosshair_x, crosshair_y + arm_length), 1)
+        pygame.draw.circle(surface, RED, (crosshair_x, crosshair_y), 3, 1)
 
-    def draw_power_bar(self, surface, sx, sy, w):
-        bar_w, bar_h = 50, 8
-        bar_x = sx + w // 2 - bar_w // 2
-        bar_y = sy - 20
-        power = self.charge / self.CHARGE_MAX
-        fill  = int(bar_w * power)
-        r = int(min(255, power * 2 * 255))
-        g = int(min(255, (1 - power) * 2 * 255))
-        pygame.draw.rect(surface, DK_GRAY,  (bar_x, bar_y, bar_w, bar_h))
-        pygame.draw.rect(surface, (r, g, 0), (bar_x, bar_y, fill,  bar_h))
-        pygame.draw.rect(surface, WHITE,    (bar_x, bar_y, bar_w, bar_h), 1)
+    def draw_power_bar(self, surface, screen_x, screen_y, player_width):
+        bar_width  = 50
+        bar_height = 8
+        bar_left   = screen_x + player_width // 2 - bar_width // 2
+        bar_top    = screen_y - 20
+        charge_ratio = self.charge / self.CHARGE_MAX
+        fill_width   = int(bar_width * charge_ratio)
+        red_amount   = int(min(255, charge_ratio * 2 * 255))
+        green_amount = int(min(255, (1 - charge_ratio) * 2 * 255))
+        pygame.draw.rect(surface, DK_GRAY,                  (bar_left, bar_top, bar_width,  bar_height))
+        pygame.draw.rect(surface, (red_amount, green_amount, 0), (bar_left, bar_top, fill_width, bar_height))
+        pygame.draw.rect(surface, WHITE,                    (bar_left, bar_top, bar_width,  bar_height), 1)

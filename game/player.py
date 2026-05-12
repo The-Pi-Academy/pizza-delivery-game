@@ -20,8 +20,8 @@ class Player:
         self.y  = float(y)
         self.w  = 30
         self.h  = 46
-        self.vx = 0.0
-        self.vy = 0.0
+        self.speed_x = 0.0
+        self.speed_y = 0.0
 
         self.on_ground    = False
         self.facing_right = True
@@ -84,7 +84,7 @@ class Player:
                 elif self.weapon == WEAPON_BOW and not self.bow.charging:
                     if self.bow.cooldown <= 0 and self.arrows > 0:
                         self.bow.start_charge()
-                        self.vx = 0.0
+                        self.speed_x = 0.0
 
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_RETURN and self.bow.charging:
@@ -95,9 +95,9 @@ class Player:
 
     def _try_jump(self):
         if self.jump_count < 1:
-            self.vy = JUMP_FORCE
+            self.speed_y    = JUMP_FORCE
             self.jump_count += 1
-            self.on_ground = False
+            self.on_ground  = False
 
     def _try_dash(self):
         if self.dash_cooldown <= 0 and not self.dashing:
@@ -112,70 +112,70 @@ class Player:
     def update(self, platforms, keys):
         # Horizontal input
         if self.bow.charging:
-            self.vx = 0.0
+            self.speed_x = 0.0
         elif not self.dashing:
             if keys[pygame.K_a]:
-                self.vx = -MOVE_SPEED
+                self.speed_x      = -MOVE_SPEED
                 self.facing_right = False
             elif keys[pygame.K_d]:
-                self.vx = MOVE_SPEED
+                self.speed_x      = MOVE_SPEED
                 self.facing_right = True
             else:
-                self.vx *= 0.75
-                if abs(self.vx) < 0.4:
-                    self.vx = 0.0
+                self.speed_x *= 0.75
+                if abs(self.speed_x) < 0.4:
+                    self.speed_x = 0.0
 
         # Dash movement
         if self.dashing:
-            self.vx          = DASH_SPEED * self.dash_dir
-            self.vy          = max(self.vy, 0)
+            self.speed_x    = DASH_SPEED * self.dash_dir
+            self.speed_y    = max(self.speed_y, 0)
             self.dash_timer -= 1
             if self.dash_timer <= 0:
                 self.dashing = False
 
         # Gravity
         if not self.dashing:
-            self.vy = min(self.vy + GRAVITY, 22)
+            self.speed_y = min(self.speed_y + GRAVITY, 22)
 
         # Jetpack thrust (SPACE held, overrides gravity effect)
         self.jetpack_thrusting = False
         if self.has_jetpack and self.jetpack_fuel > 0 and keys[pygame.K_SPACE]:
-            self.vy = max(self.vy - JETPACK_THRUST, -16.0)
-            self.jetpack_fuel -= 1
+            self.speed_y           = max(self.speed_y - JETPACK_THRUST, -16.0)
+            self.jetpack_fuel     -= 1
             self.jetpack_thrusting = True
 
         # Move X + clamp to level left edge
-        self.x += self.vx
+        self.x += self.speed_x
         if self.x < 0:
-            self.x, self.vx = 0.0, 0.0
+            self.x, self.speed_x = 0.0, 0.0
 
         # Platform collision X
         for p in platforms:
             r = self.rect
             if r.colliderect(p):
-                if self.vx > 0:
-                    self.x  = p.left - self.w
-                    self.vx = 0.0
-                elif self.vx < 0:
-                    self.x  = p.right
-                    self.vx = 0.0
+                if self.speed_x > 0:
+                    self.x       = p.left - self.w
+                    self.speed_x = 0.0
+                elif self.speed_x < 0:
+                    self.x       = p.right
+                    self.speed_x = 0.0
 
         # Move Y
-        self.y += self.vy
+        self.y += self.speed_y
 
         # Platform collision Y
         self.on_ground = False
         for p in platforms:
             r = self.rect
             if r.colliderect(p):
-                if self.vy >= 0 and r.bottom - self.vy <= p.top + 10:
+                if self.speed_y >= 0 and r.bottom - self.speed_y <= p.top + 10:
                     self.y         = p.top - self.h
-                    self.vy        = 0.0
+                    self.speed_y   = 0.0
                     self.on_ground = True
                     self.jump_count = 0
-                elif self.vy < 0:
-                    self.y  = p.bottom
-                    self.vy = 0.0
+                elif self.speed_y < 0:
+                    self.y       = p.bottom
+                    self.speed_y = 0.0
 
         # Cooldowns
         if self.dash_cooldown > 0: self.dash_cooldown -= 1
@@ -186,7 +186,7 @@ class Player:
 
         # Walk animation
         self.anim_timer += 1
-        if self.on_ground and abs(self.vx) > 0.5:
+        if self.on_ground and abs(self.speed_x) > 0.5:
             if self.anim_timer % 7 == 0:
                 self.walk_frame = (self.walk_frame + 1) % 4
         else:
@@ -210,62 +210,62 @@ class Player:
         if self.invincible > 0 and (self.invincible // 4) % 2 == 0:
             return
 
-        sx      = int(self.x - cam_x)
-        sy      = int(self.y - cam_y)
-        leg_bob = [0, 4, 0, -4][self.walk_frame] if self.on_ground else 0
-        fr      = self.facing_right
+        screen_x     = int(self.x - cam_x)
+        screen_y     = int(self.y - cam_y)
+        leg_bob      = [0, 4, 0, -4][self.walk_frame] if self.on_ground else 0
+        facing_right = self.facing_right
 
         # Power indicator (bow charging)
         if self.bow.charging:
-            self.bow.draw_power_bar(surface, sx, sy, self.w)
+            self.bow.draw_power_bar(surface, screen_x, screen_y, self.w)
 
         # Pizza delivery bag (opposite side to facing direction)
-        bag_x = sx - 10 if fr else sx + self.w + 2
-        pygame.draw.rect(surface, DK_ORANGE, (bag_x,     sy + 14, 12, 20))
-        pygame.draw.rect(surface, ORANGE,    (bag_x + 2, sy + 16,  8, 16))
-        pygame.draw.circle(surface, YELLOW,  (bag_x + 6, sy + 20),  4)
+        pizza_bag_x = screen_x - 10 if facing_right else screen_x + self.w + 2
+        pygame.draw.rect(surface, DK_ORANGE, (pizza_bag_x,     screen_y + 14, 12, 20))
+        pygame.draw.rect(surface, ORANGE,    (pizza_bag_x + 2, screen_y + 16,  8, 16))
+        pygame.draw.circle(surface, YELLOW,  (pizza_bag_x + 6, screen_y + 20),  4)
 
         # Jetpack tanks on back (drawn before body so body overlaps straps)
         if self.has_jetpack:
-            jp_x = sx - 6 if fr else sx + self.w - 2
-            pygame.draw.rect(surface, DK_GRAY, (jp_x, sy + 14, 8, 22))
-            pygame.draw.rect(surface, GRAY,    (jp_x + 1, sy + 15, 6, 20))
-            pygame.draw.rect(surface, (50, 50, 50), (jp_x + 1, sy + 33, 6, 4))
+            jetpack_x = screen_x - 6 if facing_right else screen_x + self.w - 2
+            pygame.draw.rect(surface, DK_GRAY, (jetpack_x, screen_y + 14, 8, 22))
+            pygame.draw.rect(surface, GRAY,    (jetpack_x + 1, screen_y + 15, 6, 20))
+            pygame.draw.rect(surface, (50, 50, 50), (jetpack_x + 1, screen_y + 33, 6, 4))
             if self.jetpack_thrusting:
-                pygame.draw.ellipse(surface, ORANGE, (jp_x,     sy + 36, 8, 10))
-                pygame.draw.ellipse(surface, YELLOW, (jp_x + 2, sy + 38, 4,  6))
+                pygame.draw.ellipse(surface, ORANGE, (jetpack_x,     screen_y + 36, 8, 10))
+                pygame.draw.ellipse(surface, YELLOW, (jetpack_x + 2, screen_y + 38, 4,  6))
 
         # Legs + boots
-        pygame.draw.rect(surface, DK_BROWN,     (sx + 5,  sy + 34,  9, 12 + leg_bob))
-        pygame.draw.rect(surface, DK_BROWN,     (sx + 16, sy + 34,  9, 12 - leg_bob))
-        pygame.draw.rect(surface, (50, 35, 15), (sx + 4,  sy + 44 + leg_bob, 11, 5))
-        pygame.draw.rect(surface, (50, 35, 15), (sx + 15, sy + 44 - leg_bob, 11, 5))
+        pygame.draw.rect(surface, DK_BROWN,     (screen_x + 5,  screen_y + 34,  9, 12 + leg_bob))
+        pygame.draw.rect(surface, DK_BROWN,     (screen_x + 16, screen_y + 34,  9, 12 - leg_bob))
+        pygame.draw.rect(surface, (50, 35, 15), (screen_x + 4,  screen_y + 44 + leg_bob, 11, 5))
+        pygame.draw.rect(surface, (50, 35, 15), (screen_x + 15, screen_y + 44 - leg_bob, 11, 5))
 
         # Body
-        pygame.draw.rect(surface, RED,      (sx + 4,  sy + 16, 22, 20))
-        pygame.draw.rect(surface, DARK_RED, (sx + 4,  sy + 16,  3, 20))
-        pygame.draw.rect(surface, DARK_RED, (sx + 23, sy + 16,  3, 20))
+        pygame.draw.rect(surface, RED,      (screen_x + 4,  screen_y + 16, 22, 20))
+        pygame.draw.rect(surface, DARK_RED, (screen_x + 4,  screen_y + 16,  3, 20))
+        pygame.draw.rect(surface, DARK_RED, (screen_x + 23, screen_y + 16,  3, 20))
 
         # Head
-        pygame.draw.ellipse(surface, SKIN, (sx + 7, sy + 3, 16, 14))
+        pygame.draw.ellipse(surface, SKIN, (screen_x + 7, screen_y + 3, 16, 14))
 
         # Delivery cap
-        pygame.draw.rect(surface,   DARK_RED, (sx + 5,  sy + 3, 20, 6))
-        pygame.draw.rect(surface,   DARK_RED, (sx + 3,  sy + 5, 24, 4))
-        pygame.draw.circle(surface, CREAM,    (sx + 22, sy + 3),  3)
+        pygame.draw.rect(surface,   DARK_RED, (screen_x + 5,  screen_y + 3, 20, 6))
+        pygame.draw.rect(surface,   DARK_RED, (screen_x + 3,  screen_y + 5, 24, 4))
+        pygame.draw.circle(surface, CREAM,    (screen_x + 22, screen_y + 3),  3)
 
         # Arms + weapon
         if self.weapon == WEAPON_SWORD:
-            self.sword.draw(surface, sx, sy, fr)
+            self.sword.draw(surface, screen_x, screen_y, facing_right)
         elif self.weapon == WEAPON_BOW:
-            self.bow.draw(surface, sx, sy, fr)
-            self.bow.draw_crosshair(surface, sx, sy, self.w, self.h, fr)
+            self.bow.draw(surface, screen_x, screen_y, facing_right)
+            self.bow.draw_crosshair(surface, screen_x, screen_y, self.w, self.h, facing_right)
         else:
-            pygame.draw.rect(surface, SKIN, (sx + 22, sy + 18, 8, 8))
-            pygame.draw.rect(surface, SKIN, (sx,      sy + 18, 8, 8))
+            pygame.draw.rect(surface, SKIN, (screen_x + 22, screen_y + 18, 8, 8))
+            pygame.draw.rect(surface, SKIN, (screen_x,      screen_y + 18, 8, 8))
 
         # Dash ghost trail
         if self.dashing:
             ghost = pygame.Surface((self.w, self.h), pygame.SRCALPHA)
             ghost.fill((180, 100, 255, 60))
-            surface.blit(ghost, (sx - int(self.dash_dir * 20), sy))
+            surface.blit(ghost, (screen_x - int(self.dash_dir * 20), screen_y))
