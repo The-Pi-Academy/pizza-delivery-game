@@ -18,7 +18,7 @@ import pygame
 
 from constants       import SCREEN_W, SCREEN_H, FPS, LEVEL_W, GAS_CAN_FUEL, JETPACK_FUEL_MAX
 from player          import Player
-from level           import LEVELS
+from levels          import LEVELS
 from jetpack         import JetpackItem
 from drawing         import (
     draw_background, draw_hud, draw_overlay,
