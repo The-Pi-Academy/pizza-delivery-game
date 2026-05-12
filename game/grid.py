@@ -87,6 +87,22 @@ class TileMap:
         """
         self._tiles.append(Tile(tile_rect(gx, gy, gw, gh), image))
 
+    def add_range(self, x1: int, y1: int, x2: int, y2: int, image: str) -> None:
+        """Add a tile block spanning from grid cell (x1, y1) to (x2, y2) inclusive.
+
+        Coordinates can be given in any order — top-to-bottom or bottom-to-top,
+        left-to-right or right-to-left.
+
+        Parameters
+        ----------
+        x1, y1 : int   One corner in grid columns / rows.
+        x2, y2 : int   The opposite corner (inclusive).
+        image   : str   PNG filename (e.g. "tiles/stone.png").
+        """
+        left = min(x1, x2)
+        top  = min(y1, y2)
+        self.add(left, top, abs(x2 - x1) + 1, abs(y2 - y1) + 1, image)
+
     # ------------------------------------------------------------------
     # Physics interface
     # ------------------------------------------------------------------

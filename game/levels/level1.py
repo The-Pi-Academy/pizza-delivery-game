@@ -18,17 +18,31 @@ class Level1(Level):
         tilemap = TileMap()
 
         S = "tiles/stone.png"
-        tilemap.add( 3, 8, 12, 1, S)
-        tilemap.add( 17, GROUND_ROW, 12, 1, S)
-
-        tilemap.add( 0, GROUND_ROW, 36, 2, "tiles/ground.png")   # cols  0–35
-        tilemap.add(39, GROUND_ROW, 16, 2, "tiles/ground.png")   # cols 39–54
-
+        G = "tiles/ground.png"
+        enemies = []
         ey = GROUND_Y - 46
-        enemies = [
-            Enemy(to_px( 9), ey, to_px( 4), to_px(15), 60),
-            Enemy(to_px(20), ey, to_px(14), to_px(26), 60),
-            Enemy(to_px(31), ey, to_px(23), to_px(35), 60),
-        ]
-        delivery = DeliveryTarget(to_px(41), to_px(GROUND_ROW - 2))
+        # first structure to force player to fight enemy
+        tilemap.add( 3, 8, 12, 1, S)
+        tilemap.add_range(3, 7, 3, 0, S)
+        enemies.append(Enemy(to_px(5), ey, 0, 0, 60, True))
+
+        #fist gap
+        tilemap.add( 0, GROUND_ROW, 18, 2, G)   # cols  0–35
+        tilemap.add( 20, GROUND_ROW, 19, 2, G)   # cols  0–35
+
+        # enemies after first gap
+        enemies.append(Enemy(to_px(20), ey, 0, 0, 60, True))
+        enemies.append(Enemy(to_px(25), ey, to_px(21), to_px(29)))
+        enemies.append(Enemy(to_px(30), ey, to_px(21), to_px(35)))
+
+        tilemap.add(42, GROUND_ROW, 16, 2, G)   # cols 39–54
+
+        #stairs
+        tilemap.add_range(38, 9, 50, 9, S)
+        tilemap.add_range(40, 8, 50, 8, S)
+        enemies.append(Enemy(to_px(40), 8, 0, 0, 60, True))
+        tilemap.add_range(42, 7, 50, 7, S)
+        tilemap.add_range(44, 6, 50, 6, S)
+
+        delivery = DeliveryTarget(to_px(49), to_px(4.5))
         return tilemap, enemies, delivery, [], []

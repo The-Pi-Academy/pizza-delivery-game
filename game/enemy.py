@@ -6,9 +6,9 @@ from constants import (
 
 
 class Enemy:
-    DAMAGE = 18
+    DAMAGE = 20
 
-    def __init__(self, x, y, left_bound, right_bound, hp=60):
+    def __init__(self, x, y, left_bound=0, right_bound=0, hp=60, stationary=False):
         self.x = float(x)
         self.y = float(y)
         self.w = 32
@@ -18,6 +18,7 @@ class Enemy:
         self.left_bound  = left_bound
         self.right_bound = right_bound
         self.facing_right = True
+        self.stationary  = stationary
         self.hp     = hp
         self.max_hp = hp
         self.active = True
@@ -39,15 +40,16 @@ class Enemy:
         if not self.active:
             return
 
-        self.x += self.vx
-        if self.x <= self.left_bound:
-            self.x = self.left_bound
-            self.vx = abs(self.vx)
-            self.facing_right = True
-        elif self.x + self.w >= self.right_bound:
-            self.x = self.right_bound - self.w
-            self.vx = -abs(self.vx)
-            self.facing_right = False
+        if not self.stationary:
+            self.x += self.vx
+            if self.x <= self.left_bound:
+                self.x = self.left_bound
+                self.vx = abs(self.vx)
+                self.facing_right = True
+            elif self.x + self.w >= self.right_bound:
+                self.x = self.right_bound - self.w
+                self.vx = -abs(self.vx)
+                self.facing_right = False
 
         self.vy = min(self.vy + GRAVITY, 20)
         self.y += self.vy
@@ -68,9 +70,10 @@ class Enemy:
         if self.hit_flash > 0:
             self.hit_flash -= 1
 
-        self.anim_timer += 1
-        if self.anim_timer % 10 == 0:
-            self.walk_frame = (self.walk_frame + 1) % 4
+        if not self.stationary:
+            self.anim_timer += 1
+            if self.anim_timer % 10 == 0:
+                self.walk_frame = (self.walk_frame + 1) % 4
 
     def take_damage(self, dmg):
         self.hp -= dmg

@@ -103,7 +103,8 @@ def main():
         if game_state != "playing":
             draw_background(screen, camera_x)
             tilemap.draw(screen, camera_x, camera_y)
-            delivery.draw(screen, camera_x, camera_y)
+            if delivery is not None:
+                delivery.draw(screen, camera_x, camera_y)
             for jp in jetpack_items:
                 jp.draw(screen, camera_x, camera_y)
             for gc in gas_cans:
@@ -188,7 +189,7 @@ def main():
                 game_state = "dead"
 
         # Delivery check
-        if not delivery.delivered and player.rect.colliderect(delivery.door_rect):
+        if delivery is not None and not delivery.delivered and player.rect.colliderect(delivery.door_rect):
             delivery.delivered = True
             game_state  = "victory"
             level_time  = (pygame.time.get_ticks() - start_ticks) / 1000.0
@@ -199,7 +200,8 @@ def main():
         # ---- Draw ----------------------------------------------------------
         draw_background(screen, camera_x)
         tilemap.draw(screen, camera_x, camera_y)
-        delivery.draw(screen, camera_x, camera_y)
+        if delivery is not None:
+            delivery.draw(screen, camera_x, camera_y)
         for jp in jetpack_items:
             jp.draw(screen, camera_x, camera_y)
         for gc in gas_cans:
