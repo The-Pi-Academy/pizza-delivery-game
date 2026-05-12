@@ -42,6 +42,16 @@ class Enemy:
 
         if not self.stationary:
             self.x += self.vx
+            for p in platforms:
+                if self.rect.colliderect(p):
+                    if self.vx > 0:
+                        self.x = p.left - self.w
+                        self.vx = -abs(self.vx)
+                        self.facing_right = False
+                    elif self.vx < 0:
+                        self.x = p.right
+                        self.vx = abs(self.vx)
+                        self.facing_right = True
             if self.x <= self.left_bound:
                 self.x = self.left_bound
                 self.vx = abs(self.vx)

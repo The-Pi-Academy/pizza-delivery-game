@@ -9,19 +9,12 @@ class Button:
         self.label = label
         self.font  = font
 
-    def draw(self, surface, locked=False):
-        if locked:
-            bg_col   = (20, 20, 20)
-            text_col = (80, 80, 80)
-            border   = (60, 60, 60)
-        else:
-            hovered  = self.rect.collidepoint(pygame.mouse.get_pos())
-            bg_col   = (60, 60, 60) if hovered else (30, 30, 30)
-            text_col = WHITE
-            border   = WHITE
+    def draw(self, surface):
+        hovered  = self.rect.collidepoint(pygame.mouse.get_pos())
+        bg_col   = (60, 60, 60) if hovered else (30, 30, 30)
         pygame.draw.rect(surface, bg_col, self.rect, border_radius=6)
-        pygame.draw.rect(surface, border, self.rect, 2, border_radius=6)
-        text = self.font.render(self.label, True, text_col)
+        pygame.draw.rect(surface, WHITE,  self.rect, 2, border_radius=6)
+        text = self.font.render(self.label, True, WHITE)
         surface.blit(text, (
             self.rect.centerx - text.get_width()  // 2,
             self.rect.centery - text.get_height() // 2,
@@ -49,12 +42,7 @@ def run_menu(screen, clock, level_count: int, dev_mode: bool = False) -> tuple[i
     start_y    = SCREEN_H // 2
     best_times = load_best_times(level_count)
 
-    def is_unlocked(i):
-        return i == 0 or best_times[i - 1] is not None
-
     def make_label(i):
-        if not is_unlocked(i):
-            return f"Level {i + 1}   🔒"
         bt = best_times[i]
         if bt is not None:
             return f"Level {i + 1}   {format_time(bt)}"
@@ -82,7 +70,7 @@ def run_menu(screen, clock, level_count: int, dev_mode: bool = False) -> tuple[i
             if dev_btn.is_clicked(event):
                 dev_mode = not dev_mode
             for i, btn in enumerate(buttons):
-                if is_unlocked(i) and btn.is_clicked(event):
+                if btn.is_clicked(event):
                     return i, dev_mode
 
         screen.fill(BLACK)
@@ -93,8 +81,8 @@ def run_menu(screen, clock, level_count: int, dev_mode: bool = False) -> tuple[i
         sub = font_sub.render("Choose a level", True, (180, 180, 180))
         screen.blit(sub, (cx - sub.get_width() // 2, start_y - 50))
 
-        for i, btn in enumerate(buttons):
-            btn.draw(screen, locked=not is_unlocked(i))
+        for btn in buttons:
+            btn.draw(screen)
 
         dev_btn.label = f"DEV MODE: {'ON' if dev_mode else 'OFF'}"
         dev_on_col    = (255, 220, 50) if dev_mode else (140, 140, 140)
