@@ -16,7 +16,7 @@ Controls:
 import sys
 import pygame
 
-from constants       import SCREEN_W, SCREEN_H, FPS, LEVEL_W, GAS_CAN_FUEL, JETPACK_FUEL_MAX
+from constants       import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, LEVEL_WIDTH, GAS_CAN_FUEL, JETPACK_FUEL_MAX
 from player          import Player
 from levels          import LEVELS
 from jetpack         import JetpackItem
@@ -41,7 +41,7 @@ def new_game(level_index: int = 0):
 
 
 def main():
-    screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Pizza Quest: Medieval Delivery")
     clock = pygame.time.Clock()
 
@@ -170,12 +170,12 @@ def main():
                     player.jetpack_fuel = min(JETPACK_FUEL_MAX, player.jetpack_fuel + GAS_CAN_FUEL)
 
         # Camera smooth-follow (player at roughly 1/3 from left)
-        target_cam_x = player.x - SCREEN_W // 3
-        target_cam_x = max(0, min(target_cam_x, LEVEL_W - SCREEN_W))
+        target_cam_x = player.x - SCREEN_WIDTH // 3
+        target_cam_x = max(0, min(target_cam_x, LEVEL_WIDTH - SCREEN_WIDTH))
         camera_x += (target_cam_x - camera_x) * 0.12
 
         # Vertical camera — only scroll up (cam_y <= 0), keep ground in view otherwise
-        target_cam_y = player.y - SCREEN_H // 2
+        target_cam_y = player.y - SCREEN_HEIGHT // 2
         target_cam_y = min(target_cam_y, 0)   # never scroll below world y=0
         camera_y += (target_cam_y - camera_y) * 0.12
 
