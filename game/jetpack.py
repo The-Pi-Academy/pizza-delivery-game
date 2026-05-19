@@ -1,5 +1,5 @@
 import pygame
-from constants import DK_GRAY, GRAY, ORANGE, YELLOW, SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import DK_GRAY, GRAY, ORANGE, YELLOW, SCREEN_WIDTH, SCREEN_HEIGHT, GRAVITY
 
 
 class JetpackItem:
@@ -7,9 +7,20 @@ class JetpackItem:
     W, H = 24, 32
 
     def __init__(self, x: float, y: float):
-        self.x = float(x)
-        self.y = float(y)
-        self.active = True
+        self.x       = float(x)
+        self.y       = float(y)
+        self.speed_y = 0.0
+        self.active  = True
+
+    def update(self, platforms) -> None:
+        if not self.active:
+            return
+        self.speed_y = min(self.speed_y + GRAVITY, 22)
+        self.y += self.speed_y
+        for p in platforms:
+            if self.rect.colliderect(p) and self.speed_y > 0:
+                self.y       = p.top - self.H
+                self.speed_y = 0.0
 
     @property
     def rect(self) -> pygame.Rect:

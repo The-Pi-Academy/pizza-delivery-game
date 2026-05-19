@@ -30,16 +30,16 @@ def _draw_cloud(surface, center_x, center_y):
         pygame.draw.ellipse(surface, WHITE, (center_x + dx, center_y + dy, rw, rh))
 
 
-def draw_background(surface, cam_x):
+def draw_background(surface, cam_x, cam_y=0):
     surface.fill(SKY)
 
-    # Clouds (scroll at 0.15× camera speed)
+    # Clouds — no vertical parallax (they float freely in the sky)
     for base in [80, 280, 520, 760, 1000, 1240, 1480, 1720, 1960]:
         cloud_x = int((base * 1.8 - cam_x * 0.15) % (SCREEN_WIDTH + 200)) - 100
         cloud_y = 40 + (base % 3) * 22
         _draw_cloud(surface, cloud_x, cloud_y)
 
-    # Far background buildings (scroll at 0.2×)
+    # Far background buildings (scroll at 0.2× horizontal, 0.1× vertical)
     far_buildings = [
         (0,   310, 85, 310), (90,  280, 65, 340), (165, 260, 105, 360),
         (280, 295, 85, 325), (375, 270, 75, 350), (460, 290,  95, 330),
@@ -48,18 +48,19 @@ def draw_background(surface, cam_x):
     ]
     for building_x, building_y, building_width, building_height in far_buildings:
         screen_x       = int((building_x - cam_x * 0.20) % (SCREEN_WIDTH + 250)) - 120
+        by             = building_y + 20 - int(cam_y * 0.10)
         building_color = (125, 118, 108)
-        pygame.draw.rect(surface, building_color, (screen_x, building_y, building_width, building_height))
+        pygame.draw.rect(surface, building_color, (screen_x, by, building_width, building_height))
         pygame.draw.polygon(surface, (105, 98, 88), [
-            (screen_x,                          building_y),
-            (screen_x + building_width // 2,    building_y - 28),
-            (screen_x + building_width,          building_y),
+            (screen_x,                          by),
+            (screen_x + building_width // 2,    by - 28),
+            (screen_x + building_width,          by),
         ])
-        for window_y in range(building_y + 18, building_y + building_height - 18, 38):
+        for window_y in range(by + 18, by + building_height - 18, 38):
             for window_x in range(screen_x + 8, screen_x + building_width - 8, 20):
                 pygame.draw.rect(surface, LT_BLUE, (window_x, window_y, 10, 12))
 
-    # Mid background buildings (scroll at 0.45×)
+    # Mid background buildings (scroll at 0.45× horizontal, 0.15× vertical)
     mid_buildings = [
         (0,   360, 105, 260), (115, 340, 85,  280), (210, 325, 125, 295),
         (345, 350, 95,  270), (450, 320, 115, 300), (575, 345, 105, 275),
@@ -67,13 +68,19 @@ def draw_background(surface, cam_x):
     ]
     for building_x, building_y, building_width, building_height in mid_buildings:
         screen_x = int((building_x - cam_x * 0.45) % (SCREEN_WIDTH + 250)) - 120
-        pygame.draw.rect(surface, STONE,    (screen_x, building_y,      building_width, building_height))
-        pygame.draw.rect(surface, DK_STONE, (screen_x, building_y,      building_width, 14))
+        by       = building_y + 20 - int(cam_y * 0.15)
+        pygame.draw.rect(surface, STONE,    (screen_x, by,      building_width, building_height))
+        pygame.draw.rect(surface, DK_STONE, (screen_x, by,      building_width, 14))
         for i in range(building_width // 13):
-            pygame.draw.rect(surface, DK_STONE, (screen_x + i * 13, building_y - 8, 9, 10))
-        for window_y in range(building_y + 18, building_y + building_height - 14, 32):
+            pygame.draw.rect(surface, DK_STONE, (screen_x + i * 13, by - 8, 9, 10))
+        for window_y in range(by + 18, by + building_height - 14, 32):
             for window_x in range(screen_x + 7, screen_x + building_width - 7, 16):
                 pygame.draw.rect(surface, (90, 110, 145), (window_x, window_y, 9, 11))
+
+    # Background ground — drawn flush with the building bottoms
+    ground_y = 640 - int(cam_y * 0.15)
+    pygame.draw.rect(surface, (80, 60, 38), (0, ground_y, SCREEN_WIDTH, SCREEN_HEIGHT - ground_y + 40))
+    pygame.draw.rect(surface, (55, 95, 35), (0, ground_y - 4, SCREEN_WIDTH, 8))
 
 
 # ---------------------------------------------------------------------------

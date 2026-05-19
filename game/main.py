@@ -101,7 +101,7 @@ def main():
 
         # ---- Render paused / end-screen state without updating -------------
         if game_state != "playing":
-            draw_background(screen, camera_x)
+            draw_background(screen, camera_x, camera_y)
             tilemap.draw(screen, camera_x, camera_y)
             for d in deliveries:
                 d.draw(screen, camera_x, camera_y)
@@ -171,6 +171,10 @@ def main():
                     pizza_slices.remove(a)
                     break
 
+        # Jetpack item physics
+        for jp in jetpack_items:
+            jp.update(platforms)
+
         # Gas can auto-collect
         pickup_r = player.rect.inflate(8, 8)
         for gc in gas_cans[:]:
@@ -208,7 +212,7 @@ def main():
                 save_best_times(best_times)
 
         # ---- Draw ----------------------------------------------------------
-        draw_background(screen, camera_x)
+        draw_background(screen, camera_x, camera_y)
         tilemap.draw(screen, camera_x, camera_y)
         for d in deliveries:
             d.draw(screen, camera_x, camera_y)
