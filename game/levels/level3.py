@@ -50,7 +50,7 @@ class Level3(Level):
             Enemy(to_px( 6), ey(-13),to_px( 4), to_px(14), 80),   # step 7
         ]
 
-        delivery = DeliveryTarget(to_px(18), to_px(-19))
+        deliveries = [DeliveryTarget(to_px(18), to_px(-19))]
 
         jetpack_items = [JetpackItem(to_px(4), GROUND_Y - JetpackItem.H)]
 
@@ -62,4 +62,4 @@ class Level3(Level):
             GasCan(to_px( 5), to_px(-13) - gc_h),         # step 7
         ]
 
-        return tilemap, enemies, delivery, jetpack_items, gas_cans
+        return tilemap, enemies, deliveries, jetpack_items, gas_cans

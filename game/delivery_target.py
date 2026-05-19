@@ -1,19 +1,33 @@
 import math
 import pygame
 from constants import (
-    STONE, DK_STONE, DK_BROWN, LT_BLUE, RED, YELLOW,
+    STONE, DK_STONE, DK_BROWN, LT_BLUE, RED, YELLOW, DK_ORANGE,
 )
 
 
 class DeliveryTarget:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.delivered = False
+    def __init__(self, x, y, required_slices=1):
+        self.x               = x
+        self.y               = y
+        self.required_slices = required_slices
+        self.slices_delivered = 0
+
+    @property
+    def delivered(self):
+        return self.slices_delivered >= self.required_slices
 
     @property
     def door_rect(self):
         return pygame.Rect(self.x + 20, self.y + 55, 28, 35)
+
+    @property
+    def hit_rect(self):
+        """Full castle area that counts as a valid pizza delivery hit."""
+        return pygame.Rect(self.x - 18, self.y - 6, 116, 102)
+
+    def receive_slice(self):
+        if not self.delivered:
+            self.slices_delivered += 1
 
     def draw(self, surface, cam_x, cam_y=0):
         screen_x     = int(self.x - cam_x)
@@ -64,14 +78,25 @@ class DeliveryTarget:
             for i in range(3):
                 pygame.draw.rect(surface, DK_STONE, (side_tower_x + i * 8, screen_y + 10, 6, 10))
 
-        # Delivery indicator (bouncing arrow + label)
+        # Order indicator: fraction + pizza slice icon
         if not self.delivered:
-            bounce        = int(math.sin(current_time * 0.005) * 6)
-            small_font    = pygame.font.Font(None, 22)
-            indicator_label = small_font.render("DELIVER HERE!", True, YELLOW)
-            surface.blit(indicator_label, (screen_x + 40 - indicator_label.get_width() // 2, screen_y - 55 + bounce))
-            pygame.draw.polygon(surface, YELLOW, [
-                (screen_x + 40, screen_y - 35 + bounce),
-                (screen_x + 34, screen_y - 44 + bounce),
-                (screen_x + 46, screen_y - 44 + bounce),
-            ])
+            bounce    = int(math.sin(current_time * 0.005) * 6)
+            frac_font = pygame.font.Font(None, 36)
+            frac_surf = frac_font.render(f"{self.slices_delivered}/{self.required_slices}", True, YELLOW)
+
+            icon_w, icon_h = 10, 16
+            gap     = 6
+            total_w = frac_surf.get_width() + gap + icon_w
+            fx      = screen_x + 40 - total_w // 2
+            fy      = screen_y - 62 + bounce
+
+            surface.blit(frac_surf, (fx, fy))
+
+            # Mini pizza slice icon (tip pointing down, 90° CW)
+            ix  = fx + frac_surf.get_width() + gap
+            iy  = fy + (frac_surf.get_height() - icon_h) // 2
+            ihw = icon_w // 2
+            pygame.draw.polygon(surface, YELLOW, [(ix, iy), (ix + icon_w, iy), (ix + ihw, iy + icon_h)])
+            pygame.draw.line(surface, DK_ORANGE, (ix, iy), (ix + icon_w, iy), 3)
+            pygame.draw.circle(surface, RED, (ix + 4, iy + 5), 2)
+            pygame.draw.circle(surface, RED, (ix + 6, iy + 9), 2)

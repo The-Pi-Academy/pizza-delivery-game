@@ -3,7 +3,7 @@ import pygame
 from constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, DASH_COOLDOWN, JETPACK_FUEL_MAX,
     WEAPON_BREADSTICK, WEAPON_PIZZA_CANNON,
-    WHITE, RED, GREEN, YELLOW, ORANGE,
+    WHITE, BLACK, RED, GREEN, YELLOW, ORANGE,
     BROWN, GRAY, DK_GRAY, LT_GRAY, PURPLE, LT_PURPLE,
     DARK_RED, DK_ORANGE,
     SKY, STONE, DK_STONE, LT_BLUE,
@@ -104,7 +104,7 @@ def draw_platform(surface, plat, cam_x, cam_y=0):
 # ---------------------------------------------------------------------------
 # HUD
 # ---------------------------------------------------------------------------
-def draw_hud(surface, player, small_font, timer_seconds=0.0):
+def draw_hud(surface, player, small_font, deliveries=(), timer_seconds=0.0):
     # Health bar
     health_bar_x      = 18
     health_bar_y      = 18
@@ -162,6 +162,11 @@ def draw_hud(surface, player, small_font, timer_seconds=0.0):
     from save import format_time
     timer_label_surface = small_font.render(format_time(timer_seconds), True, WHITE)
     surface.blit(timer_label_surface, (SCREEN_WIDTH - timer_label_surface.get_width() - 18, 18))
+
+    # Deliveries remaining (top-center)
+    remaining = sum(1 for d in deliveries if not d.delivered)
+    remaining_surf = small_font.render(f"{remaining}  Deliveries Remaining", True, BLACK)
+    surface.blit(remaining_surf, (SCREEN_WIDTH // 2 - remaining_surf.get_width() // 2, 18))
 
     # Controls reminder (bottom-left)
     for line_index, hint_line in enumerate([

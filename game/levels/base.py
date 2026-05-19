@@ -7,5 +7,5 @@ GROUND_Y   = to_px(GROUND_ROW)
 
 
 class Level:
-    def build(self) -> tuple[TileMap, list[Enemy], DeliveryTarget, list, list]:
+    def build(self) -> tuple[TileMap, list[Enemy], list[DeliveryTarget], list, list]:
         raise NotImplementedError

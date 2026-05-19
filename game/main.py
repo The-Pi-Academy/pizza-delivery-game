@@ -31,13 +31,13 @@ _PIT_THRESHOLD = 840   # 200 px below ground level (640)
 
 
 def new_game(level_index: int = 0):
-    tilemap, enemies, delivery, jetpack_items, gas_cans = LEVELS[level_index].build()
+    tilemap, enemies, deliveries, jetpack_items, gas_cans = LEVELS[level_index].build()
     player        = Player(120, 594)   # ground y=640, player h=46 → spawn y=594
     pizza_slices  = []
     camera_x      = 0.0
     camera_y      = 0.0
     start_ticks   = pygame.time.get_ticks()
-    return tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks
+    return tilemap, enemies, player, pizza_slices, deliveries, camera_x, camera_y, jetpack_items, gas_cans, start_ticks
 
 
 def main():
@@ -51,7 +51,7 @@ def main():
 
     level_index, dev_mode = run_menu(screen, clock, len(LEVELS))
     best_times  = load_best_times(len(LEVELS))
-    tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
+    tilemap, enemies, player, pizza_slices, deliveries, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
     level_time  = None   # set on victory
     game_state  = "playing"
 
@@ -68,7 +68,7 @@ def main():
                     running = False
                 if event.key == pygame.K_r:
                     if game_state in ("dead", "playing"):
-                        tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
+                        tilemap, enemies, player, pizza_slices, deliveries, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
                         level_time = None
                         game_state = "playing"
                     elif game_state == "victory":
@@ -76,7 +76,7 @@ def main():
                             level_index, dev_mode = run_menu(screen, clock, len(LEVELS), dev_mode)
                         else:
                             level_index += 1
-                        tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
+                        tilemap, enemies, player, pizza_slices, deliveries, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
                         level_time = None
                         game_state = "playing"
                 # Jetpack pickup / drop (E key)
@@ -103,8 +103,8 @@ def main():
         if game_state != "playing":
             draw_background(screen, camera_x)
             tilemap.draw(screen, camera_x, camera_y)
-            if delivery is not None:
-                delivery.draw(screen, camera_x, camera_y)
+            for d in deliveries:
+                d.draw(screen, camera_x, camera_y)
             for jp in jetpack_items:
                 jp.draw(screen, camera_x, camera_y)
             for gc in gas_cans:
@@ -116,7 +116,7 @@ def main():
             player.draw(screen, camera_x, camera_y)
             if dev_mode:
                 draw_grid_overlay(screen, camera_x, camera_y)
-            draw_hud(screen, player, font_sm, timer_seconds=level_time or 0.0)
+            draw_hud(screen, player, font_sm, deliveries=deliveries, timer_seconds=level_time or 0.0)
             draw_overlay(screen, font_big, font_md, font_sm, game_state, level_index, len(LEVELS),
                          level_time=level_time, best_time=best_times[level_index])
             pygame.display.flip()
@@ -160,6 +160,17 @@ def main():
                     if player.hp <= 0:
                         game_state = "dead"
 
+        # Pizza slice hits delivery targets
+        for a in pizza_slices[:]:
+            if not a.active:
+                continue
+            for d in deliveries:
+                if not d.delivered and a.rect.colliderect(d.hit_rect):
+                    d.receive_slice()
+                    a.active = False
+                    pizza_slices.remove(a)
+                    break
+
         # Gas can auto-collect
         pickup_r = player.rect.inflate(8, 8)
         for gc in gas_cans[:]:
@@ -188,9 +199,8 @@ def main():
             if player.hp <= 0:
                 game_state = "dead"
 
-        # Delivery check
-        if delivery is not None and not delivery.delivered and player.rect.colliderect(delivery.door_rect):
-            delivery.delivered = True
+        # Delivery check — all orders complete when every target is satisfied
+        if deliveries and all(d.delivered for d in deliveries) and game_state == "playing":
             game_state  = "victory"
             level_time  = (pygame.time.get_ticks() - start_ticks) / 1000.0
             if best_times[level_index] is None or level_time < best_times[level_index]:
@@ -200,8 +210,8 @@ def main():
         # ---- Draw ----------------------------------------------------------
         draw_background(screen, camera_x)
         tilemap.draw(screen, camera_x, camera_y)
-        if delivery is not None:
-            delivery.draw(screen, camera_x, camera_y)
+        for d in deliveries:
+            d.draw(screen, camera_x, camera_y)
         for jp in jetpack_items:
             jp.draw(screen, camera_x, camera_y)
         for gc in gas_cans:
@@ -214,7 +224,7 @@ def main():
         if dev_mode:
             draw_grid_overlay(screen, camera_x, camera_y)
         running_time = (pygame.time.get_ticks() - start_ticks) / 1000.0
-        draw_hud(screen, player, font_sm, timer_seconds=running_time)
+        draw_hud(screen, player, font_sm, deliveries=deliveries, timer_seconds=running_time)
 
         pygame.display.flip()
 

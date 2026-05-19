@@ -44,5 +44,5 @@ class Level1(Level):
         tilemap.add_range(42, 7, 50, 7, S)
         tilemap.add_range(44, 6, 50, 6, S)
 
-        delivery = DeliveryTarget(to_px(49), to_px(4.5))
-        return tilemap, enemies, delivery, [], []
+        deliveries = [DeliveryTarget(to_px(49), to_px(4.5), required_slices=3)]
+        return tilemap, enemies, deliveries, [], []
