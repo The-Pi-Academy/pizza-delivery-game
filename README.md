@@ -3,6 +3,28 @@
 You are a pizza delivery person... in medieval times. Fight your way through
 guards, leap across gaps, and get the pizza to the door before it gets cold!
 
+The intention of this game is to teach campers the fundamentals of game development
+ with little to no programming experience. 
+ 
+ # Levels 
+ There are three levels total, with an empty fourth level provided for anyone who wants to take a crack at making their own level from scratch.
+
+ ## Level 1
+ Basic level that teaches the player basic contols, weapons, enemies, etc. Can be completed with no edits.
+
+ ## Level 2
+ On its own the level cannot be completed, players are immediately blocked by a giant wall
+ and must determine how they can get around the wall. The ideal way they solve this blocker is by removing or changing the wall in `levels/level2.py`. There is a comment locating the line of code adding thish wall.
+ 
+
+ # Things to Go Over With Campers
+ 1. The file system - Show them how to open the game files, explain important files such as 
+ run.py, reset.py, the levels directory, etc.
+
+ 2. The game loop - 
+
+
+
 ---
 
 ## What you need
