@@ -2,13 +2,13 @@ import pygame
 from constants import (
     GRAVITY, JUMP_FORCE, MOVE_SPEED,
     DASH_SPEED, DASH_FRAMES, DASH_COOLDOWN,
-    WEAPON_NONE, WEAPON_SWORD, WEAPON_BOW,
+    WEAPON_NONE, WEAPON_BREADSTICK, WEAPON_PIZZA_CANNON,
     JETPACK_THRUST, JETPACK_FUEL_MAX,
     WHITE, RED, DARK_RED, ORANGE, DK_ORANGE, YELLOW, CREAM,
     DK_BROWN, DK_GRAY, BROWN, GRAY, LT_GRAY, SKIN,
 )
-from sword import Sword
-from bow import Bow
+from breadstick import Breadstick
+from pizza_cannon import PizzaCannon
 
 
 class Player:
@@ -30,11 +30,10 @@ class Player:
         self.hp     = 100
         self.max_hp = 100
 
-        self.weapon = WEAPON_SWORD
-        self.arrows = 25
+        self.weapon = WEAPON_BREADSTICK
 
-        self.sword = Sword()
-        self.bow   = Bow()
+        self.breadstick   = Breadstick()
+        self.pizza_cannon = PizzaCannon()
 
         # Dash
         self.dashing       = False
@@ -65,7 +64,7 @@ class Player:
     # -------------------------------------------------------------------------
     # Input
     # -------------------------------------------------------------------------
-    def process_event(self, event, arrows_list):
+    def process_event(self, event, pizza_slices_list):
         """Call once per pygame event."""
         if event.type == pygame.KEYDOWN:
             k = event.key
@@ -74,24 +73,23 @@ class Player:
             elif k in (pygame.K_LSHIFT, pygame.K_RSHIFT):
                 self._try_dash()
             elif k == pygame.K_1:
-                self.bow.cancel()
-                self.weapon = WEAPON_SWORD
+                self.pizza_cannon.cancel()
+                self.weapon = WEAPON_BREADSTICK
             elif k == pygame.K_2:
-                self.weapon = WEAPON_BOW
+                self.weapon = WEAPON_PIZZA_CANNON
             elif k == pygame.K_RETURN:
-                if self.weapon == WEAPON_SWORD:
-                    self.sword.try_swing()
-                elif self.weapon == WEAPON_BOW and not self.bow.charging:
-                    if self.bow.cooldown <= 0 and self.arrows > 0:
-                        self.bow.start_charge()
+                if self.weapon == WEAPON_BREADSTICK:
+                    self.breadstick.try_swing()
+                elif self.weapon == WEAPON_PIZZA_CANNON and not self.pizza_cannon.charging:
+                    if self.pizza_cannon.cooldown <= 0:
+                        self.pizza_cannon.start_charge()
                         self.speed_x = 0.0
 
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_RETURN and self.bow.charging:
-                self.bow.release_shot(
-                    arrows_list, self.x, self.y, self.w, self.h, self.facing_right
+            if event.key == pygame.K_RETURN and self.pizza_cannon.charging:
+                self.pizza_cannon.release_shot(
+                    pizza_slices_list, self.x, self.y, self.w, self.h, self.facing_right
                 )
-                self.arrows -= 1
 
     def _try_jump(self):
         if self.jump_count < 1:
@@ -111,7 +109,7 @@ class Player:
     # -------------------------------------------------------------------------
     def update(self, platforms, keys):
         # Horizontal input
-        if self.bow.charging:
+        if self.pizza_cannon.charging:
             self.speed_x = 0.0
         elif not self.dashing:
             if keys[pygame.K_a]:
@@ -181,8 +179,8 @@ class Player:
         if self.dash_cooldown > 0: self.dash_cooldown -= 1
         if self.invincible     > 0: self.invincible     -= 1
 
-        self.sword.update()
-        self.bow.update(keys)
+        self.breadstick.update()
+        self.pizza_cannon.update(keys)
 
         # Walk animation
         self.anim_timer += 1
@@ -192,8 +190,8 @@ class Player:
         else:
             self.walk_frame = 0
 
-    def sword_rect(self):
-        return self.sword.hitbox(self.x, self.y, self.w, self.facing_right)
+    def breadstick_rect(self):
+        return self.breadstick.hitbox(self.x, self.y, self.w, self.facing_right)
 
     def take_damage(self, dmg):
         if self.invincible > 0:
@@ -215,9 +213,9 @@ class Player:
         leg_bob      = [0, 4, 0, -4][self.walk_frame] if self.on_ground else 0
         facing_right = self.facing_right
 
-        # Power indicator (bow charging)
-        if self.bow.charging:
-            self.bow.draw_power_bar(surface, screen_x, screen_y, self.w)
+        # Power indicator (cannon charging)
+        if self.pizza_cannon.charging:
+            self.pizza_cannon.draw_power_bar(surface, screen_x, screen_y, self.w)
 
         # Pizza delivery bag (opposite side to facing direction)
         pizza_bag_x = screen_x - 10 if facing_right else screen_x + self.w + 2
@@ -255,11 +253,11 @@ class Player:
         pygame.draw.circle(surface, CREAM,    (screen_x + 22, screen_y + 3),  3)
 
         # Arms + weapon
-        if self.weapon == WEAPON_SWORD:
-            self.sword.draw(surface, screen_x, screen_y, facing_right)
-        elif self.weapon == WEAPON_BOW:
-            self.bow.draw(surface, screen_x, screen_y, facing_right)
-            self.bow.draw_crosshair(surface, screen_x, screen_y, self.w, self.h, facing_right)
+        if self.weapon == WEAPON_BREADSTICK:
+            self.breadstick.draw(surface, screen_x, screen_y, facing_right)
+        elif self.weapon == WEAPON_PIZZA_CANNON:
+            self.pizza_cannon.draw(surface, screen_x, screen_y, facing_right)
+            self.pizza_cannon.draw_crosshair(surface, screen_x, screen_y, self.w, self.h, facing_right)
         else:
             pygame.draw.rect(surface, SKIN, (screen_x + 22, screen_y + 18, 8, 8))
             pygame.draw.rect(surface, SKIN, (screen_x,      screen_y + 18, 8, 8))

@@ -6,8 +6,8 @@ Controls:
   SPACE       - Jump (double jump supported) / Jetpack thrust (when equipped)
   LEFT SHIFT  - Dash
   1           - Equip Sword
-  2           - Equip Bow
-  ENTER       - Swing sword / Shoot arrow
+  2           - Equip Pizza Cannon
+  ENTER       - Swing breadstick / Launch pizza slice
   E           - Pick up Jetpack / Drop Jetpack
   R           - Restart current level / Next level (when victorious)
   ESC         - Quit
@@ -33,11 +33,11 @@ _PIT_THRESHOLD = 840   # 200 px below ground level (640)
 def new_game(level_index: int = 0):
     tilemap, enemies, delivery, jetpack_items, gas_cans = LEVELS[level_index].build()
     player        = Player(120, 594)   # ground y=640, player h=46 → spawn y=594
-    arrows        = []
+    pizza_slices  = []
     camera_x      = 0.0
     camera_y      = 0.0
     start_ticks   = pygame.time.get_ticks()
-    return tilemap, enemies, player, arrows, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks
+    return tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks
 
 
 def main():
@@ -51,7 +51,7 @@ def main():
 
     level_index, dev_mode = run_menu(screen, clock, len(LEVELS))
     best_times  = load_best_times(len(LEVELS))
-    tilemap, enemies, player, arrows, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
+    tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
     level_time  = None   # set on victory
     game_state  = "playing"
 
@@ -68,7 +68,7 @@ def main():
                     running = False
                 if event.key == pygame.K_r:
                     if game_state in ("dead", "playing"):
-                        tilemap, enemies, player, arrows, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
+                        tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
                         level_time = None
                         game_state = "playing"
                     elif game_state == "victory":
@@ -76,7 +76,7 @@ def main():
                             level_index, dev_mode = run_menu(screen, clock, len(LEVELS), dev_mode)
                         else:
                             level_index += 1
-                        tilemap, enemies, player, arrows, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
+                        tilemap, enemies, player, pizza_slices, delivery, camera_x, camera_y, jetpack_items, gas_cans, start_ticks = new_game(level_index)
                         level_time = None
                         game_state = "playing"
                 # Jetpack pickup / drop (E key)
@@ -97,7 +97,7 @@ def main():
                                 player.jetpack_fuel = JETPACK_FUEL_MAX
                                 break
             if game_state == "playing":
-                player.process_event(event, arrows)
+                player.process_event(event, pizza_slices)
 
         # ---- Render paused / end-screen state without updating -------------
         if game_state != "playing":
@@ -111,7 +111,7 @@ def main():
                 gc.draw(screen, camera_x, camera_y)
             for e in enemies:
                 e.draw(screen, camera_x, camera_y)
-            for a in arrows:
+            for a in pizza_slices:
                 a.draw(screen, camera_x, camera_y)
             player.draw(screen, camera_x, camera_y)
             if dev_mode:
@@ -127,31 +127,31 @@ def main():
         platforms = tilemap.platforms
         player.update(platforms, keys)
 
-        # Arrows
-        for a in arrows[:]:
+        # Pizza slices
+        for a in pizza_slices[:]:
             a.update(platforms)
             if not a.active:
-                arrows.remove(a)
+                pizza_slices.remove(a)
 
         # Enemies + combat resolution
-        sword_r = player.sword_rect()
+        breadstick_r = player.breadstick_rect()
         for e in enemies:
             e.update(platforms)
             if not e.active:
                 continue
 
-            # Sword hit (tracked per swing to avoid multi-hit)
-            if sword_r and e.rect.colliderect(sword_r):
-                if id(e) not in player.sword.hit_set:
-                    player.sword.hit_set.add(id(e))
-                    e.take_damage(player.sword.DAMAGE)
+            # Breadstick hit (tracked per swing to avoid multi-hit)
+            if breadstick_r and e.rect.colliderect(breadstick_r):
+                if id(e) not in player.breadstick.hit_set:
+                    player.breadstick.hit_set.add(id(e))
+                    e.take_damage(player.breadstick.DAMAGE)
 
-            # Arrow hit
-            for a in arrows[:]:
+            # Pizza slice hit
+            for a in pizza_slices[:]:
                 if a.active and a.rect.colliderect(e.rect):
                     e.take_damage(a.damage)
                     a.active = False
-                    arrows.remove(a)
+                    pizza_slices.remove(a)
 
             # Enemy melee attack on player
             if e.rect.colliderect(player.rect) and e.can_attack():
@@ -208,7 +208,7 @@ def main():
             gc.draw(screen, camera_x, camera_y)
         for e in enemies:
             e.draw(screen, camera_x, camera_y)
-        for a in arrows:
+        for a in pizza_slices:
             a.draw(screen, camera_x, camera_y)
         player.draw(screen, camera_x, camera_y)
         if dev_mode:

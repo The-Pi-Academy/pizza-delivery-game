@@ -2,7 +2,7 @@ import math
 import pygame
 from constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, DASH_COOLDOWN, JETPACK_FUEL_MAX,
-    WEAPON_SWORD, WEAPON_BOW,
+    WEAPON_BREADSTICK, WEAPON_PIZZA_CANNON,
     WHITE, RED, GREEN, YELLOW, ORANGE,
     BROWN, GRAY, DK_GRAY, LT_GRAY, PURPLE, LT_PURPLE,
     DARK_RED, DK_ORANGE,
@@ -119,12 +119,12 @@ def draw_hud(surface, player, small_font, timer_seconds=0.0):
                  (health_bar_x + 6, health_bar_y + 3))
 
     # Weapon label + attack-ready dot
-    if player.weapon == WEAPON_SWORD:
-        weapon_text, weapon_color = "SWORD", GRAY
-        ready = player.sword.cooldown <= 0
-    elif player.weapon == WEAPON_BOW:
-        weapon_text, weapon_color = f"BOW    {player.arrows} arrows", BROWN
-        ready = player.bow.cooldown <= 0
+    if player.weapon == WEAPON_BREADSTICK:
+        weapon_text, weapon_color = "BREADSTICK", GRAY
+        ready = player.breadstick.cooldown <= 0
+    elif player.weapon == WEAPON_PIZZA_CANNON:
+        weapon_text, weapon_color = "CANNON", ORANGE
+        ready = player.pizza_cannon.cooldown <= 0
     else:
         weapon_text, weapon_color = "unarmed   press 1 or 2", LT_GRAY
         ready = True
@@ -166,7 +166,7 @@ def draw_hud(surface, player, small_font, timer_seconds=0.0):
     # Controls reminder (bottom-left)
     for line_index, hint_line in enumerate([
         "WASD: Move    SPACE: Jump / Jetpack    SHIFT: Dash",
-        "1: Sword   2: Bow   ENTER: Attack/Shoot   E: Jetpack",
+        "1: Breadstick   2: Cannon   ENTER: Attack/Shoot   E: Jetpack",
     ]):
         surface.blit(small_font.render(hint_line, True, (190, 190, 190)),
                      (16, SCREEN_HEIGHT - 46 + line_index * 22))
