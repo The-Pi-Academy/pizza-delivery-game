@@ -50,16 +50,14 @@ class Level3(Level):
             Enemy(to_px( 6), ey(-13),to_px( 4), to_px(14), 80),   # step 7
         ]
 
-        deliveries = [DeliveryTarget(to_px(18), to_px(-19))]
+        deliveries = [DeliveryTarget(to_px(18), to_px(-19)), DeliveryTarget(to_px(24), to_px(-3))]
 
         jetpack_items = [JetpackItem(to_px(4), GROUND_Y - JetpackItem.H)]
 
         gc_h = GasCan.H
         gas_cans = [
             GasCan(to_px(9),  GROUND_Y - gc_h),           # ground, before step 1
-            GasCan(to_px(5),  to_px( 1) - gc_h),          # step 3
-            GasCan(to_px(18), to_px(-10) - gc_h),         # step 6
-            GasCan(to_px( 5), to_px(-13) - gc_h),         # step 7
+            # ADD MORE GAS CANS HERE
         ]
 
         return tilemap, enemies, deliveries, jetpack_items, gas_cans
