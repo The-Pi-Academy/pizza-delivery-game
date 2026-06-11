@@ -2,7 +2,7 @@ import pygame
 from constants import SKIN
 
 
-class Breadstick:
+class BreadstickSword:
     DURATION = 18
     COOLDOWN = 28
     DAMAGE   = 38

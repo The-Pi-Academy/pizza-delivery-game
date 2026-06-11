@@ -7,7 +7,7 @@ from constants import (
     WHITE, RED, DARK_RED, ORANGE, DK_ORANGE, YELLOW, CREAM,
     DK_BROWN, DK_GRAY, BROWN, GRAY, LT_GRAY, SKIN,
 )
-from breadstick import Breadstick
+from game.breadstick_sword import BreadstickSword
 from pizza_cannon import PizzaCannon
 
 
@@ -32,7 +32,7 @@ class Player:
 
         self.weapon = WEAPON_BREADSTICK
 
-        self.breadstick   = Breadstick()
+        self.breadstick   = BreadstickSword()
         self.pizza_cannon = PizzaCannon()
 
         # Dash

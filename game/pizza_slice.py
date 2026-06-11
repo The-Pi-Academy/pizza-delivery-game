@@ -15,7 +15,7 @@ class PizzaSlice:
         self.w         = 20
         self.h         = 14
         self.active    = True
-        self.damage    = 28
+        self.damage    = 30
 
     @property
     def rect(self):
