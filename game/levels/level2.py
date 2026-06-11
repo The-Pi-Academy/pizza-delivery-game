@@ -26,6 +26,8 @@ class Level2(Level):
         # after first wall add some enemies
         enemies.append(Enemy(to_px(9), ey, to_px( 4), to_px(15), 60))
         enemies.append(Enemy(to_px(12), ey, to_px(10), to_px(14), 60))
+        enemies.append(Enemy(to_px(16), ey, to_px(15), to_px(18), 60))
+        enemies.append(Enemy(to_px(18), ey, to_px(17), to_px(20), 60))
 
         # second gap, too big to cross. Fix this to make it past!
         tilemap.add_range(26, GROUND_ROW, 60, GROUND_ROW, G)
