@@ -28,7 +28,11 @@ class Level2(Level):
         enemies.append(Enemy(to_px(12), ey, to_px(10), to_px(14), 60))
 
         # second gap, too big to cross. Fix this to make it past!
-        tilemap.add_range
+        tilemap.add_range(26, GROUND_ROW, 60, GROUND_ROW, G)
 
-        deliveries.append(DeliveryTarget(to_px(41), to_px(GROUND_ROW - 2), required_slices=3))
+        # add some stairs before the target
+        tilemap.add(26, 9, 1, 1, S)
+        tilemap.add(27, 8, 1, 1, S)
+        tilemap.add(27, 9, 1, 1, S)
+        deliveries.append(DeliveryTarget(to_px(29), to_px(GROUND_ROW - 1.5), required_slices=3))
         return tilemap, enemies, deliveries, [], []

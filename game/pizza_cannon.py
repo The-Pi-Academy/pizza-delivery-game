@@ -45,7 +45,7 @@ class PizzaCannon:
             self.cooldown -= 1
         if self.charging:
             if keys[pygame.K_w]:
-                self.angle = min(90,  self.angle + 2)
+                self.angle = min(45,  self.angle + 2)
             if keys[pygame.K_s]:
                 self.angle = max(-45, self.angle - 2)
             self.charge = min(self.charge + 1, self.CHARGE_MAX)
