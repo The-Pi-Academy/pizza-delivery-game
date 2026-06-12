@@ -41,6 +41,7 @@ class Level3(Level):
         tilemap.add(17,-10,  8, 1, S)   # step 6  (4-row gap from step 5)
         tilemap.add( 4,-13, 10, 1, S)   # step 7
         tilemap.add(17,-17,  7, 1, S)   # step 8  (4-row gap from step 7)
+        tilemap.add(26, 0, 3, 1, S)
 
         enemies = [
             Enemy( 7,  7,  2, 6, 60),   # step 1
@@ -51,7 +52,7 @@ class Level3(Level):
             Enemy( 22, -3, 0, 0, 80),
         ]
 
-        deliveries = [DeliveryTarget(18, -19, 2), DeliveryTarget(24, -3, 4)]
+        deliveries = [DeliveryTarget(18, -19, 2), DeliveryTarget(24, -3, 4), DeliveryTarget(27, 0, 3)]
 
         jetpack_items = [JetpackItem(4, GROUND_ROW)]
 
