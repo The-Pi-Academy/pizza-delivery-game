@@ -288,7 +288,7 @@ def _draw_world(screen, world, fonts, dev_mode, timer_seconds):
 # Entry point
 # ---------------------------------------------------------------------------
 def main():
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
     pygame.display.set_caption("Pizza Quest: Medieval Delivery")
     clock = pygame.time.Clock()
 
