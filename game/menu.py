@@ -3,6 +3,21 @@ from constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, WHITE, BLACK
 from save import load_best_times, format_time
 
 
+# Key / description pairs shown on the controls screen.
+CONTROLS = [
+    ("A / D",      "Move left / right"),
+    ("SPACE",      "Jump (double jump) / Jetpack thrust"),
+    ("LEFT SHIFT", "Dash"),
+    ("1",          "Equip Sword"),
+    ("2",          "Equip Pizza Cannon"),
+    ("ENTER",      "Swing breadstick / Launch pizza slice"),
+    ("E",          "Pick up / Drop Jetpack"),
+    ("R",          "Restart level / Next level (on victory)"),
+    ("M",          "Toggle developer mode (grid overlay)"),
+    ("ESC",        "Quit"),
+]
+
+
 class Button:
     def __init__(self, center_x, center_y, button_width, button_height, label, font):
         self.rect  = pygame.Rect(center_x - button_width // 2, center_y - button_height // 2, button_width, button_height)
@@ -28,19 +43,59 @@ class Button:
         )
 
 
+def _run_controls_screen(screen, clock):
+    """Show the list of controls until the player closes it (X button or ESC)."""
+    font_title = pygame.font.Font(None, 72)
+    font_key   = pygame.font.Font(None, 34)
+    font_desc  = pygame.font.Font(None, 30)
+    font_x     = pygame.font.Font(None, 40)
+
+    close_btn = Button(SCREEN_WIDTH - 44, 44, 48, 48, "X", font_x)
+
+    key_x  = SCREEN_WIDTH // 2 - 300
+    desc_x = SCREEN_WIDTH // 2 - 80
+    list_y = 200
+    row_h  = 44
+
+    while True:
+        clock.tick(FPS)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                raise SystemExit
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return
+            if close_btn.is_clicked(event):
+                return
+
+        screen.fill(BLACK)
+
+        title = font_title.render("Controls", True, WHITE)
+        screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 90))
+
+        for row, (key, desc) in enumerate(CONTROLS):
+            y = list_y + row * row_h
+            screen.blit(font_key.render(key, True, (255, 220, 50)), (key_x, y))
+            screen.blit(font_desc.render(desc, True, WHITE),        (desc_x, y))
+
+        close_btn.draw(screen)
+
+        pygame.display.flip()
+
+
 def run_menu(screen, clock, level_count: int, dev_mode: bool = False) -> tuple[int, bool]:
     """Block until the player selects a level. Returns (level_index, dev_mode)."""
     font_title  = pygame.font.Font(None, 96)
     font_sub    = pygame.font.Font(None, 38)
     font_button = pygame.font.Font(None, 52)
-    font_dev    = pygame.font.Font(None, 30)
 
-    center_x       = SCREEN_WIDTH // 2
-    button_width   = 280
-    button_height  = 60
-    spacing        = 80
+    center_x        = SCREEN_WIDTH // 2
+    button_width    = 280
+    button_height   = 60
+    spacing         = 80
     buttons_start_y = SCREEN_HEIGHT // 2
-    best_times     = load_best_times(level_count)
+    best_times      = load_best_times(level_count)
 
     def make_label(i):
         best_time = best_times[i]
@@ -54,8 +109,8 @@ def run_menu(screen, clock, level_count: int, dev_mode: bool = False) -> tuple[i
         for i in range(level_count)
     ]
 
-    dev_btn_y = buttons_start_y + level_count * spacing + 20
-    dev_btn   = Button(center_x, dev_btn_y, 220, 40, "", font_dev)
+    controls_btn_y = buttons_start_y + level_count * spacing + 20
+    controls_btn   = Button(center_x, controls_btn_y, 220, 40, "Controls", font_sub)
 
     while True:
         clock.tick(FPS)
@@ -67,8 +122,9 @@ def run_menu(screen, clock, level_count: int, dev_mode: bool = False) -> tuple[i
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 raise SystemExit
-            if dev_btn.is_clicked(event):
-                dev_mode = not dev_mode
+            if controls_btn.is_clicked(event):
+                _run_controls_screen(screen, clock)
+                break
             for i, btn in enumerate(buttons):
                 if btn.is_clicked(event):
                     return i, dev_mode
@@ -84,12 +140,6 @@ def run_menu(screen, clock, level_count: int, dev_mode: bool = False) -> tuple[i
         for btn in buttons:
             btn.draw(screen)
 
-        dev_btn.label       = f"DEV MODE: {'ON' if dev_mode else 'OFF'}"
-        dev_mode_border_color = (255, 220, 50) if dev_mode else (140, 140, 140)
-        pygame.draw.rect(screen, (25, 25, 25),         dev_btn.rect, border_radius=6)
-        pygame.draw.rect(screen, dev_mode_border_color, dev_btn.rect, 2, border_radius=6)
-        dev_mode_label = font_dev.render(dev_btn.label, True, dev_mode_border_color)
-        screen.blit(dev_mode_label, (dev_btn.rect.centerx - dev_mode_label.get_width() // 2,
-                                     dev_btn.rect.centery - dev_mode_label.get_height() // 2))
+        controls_btn.draw(screen)
 
         pygame.display.flip()

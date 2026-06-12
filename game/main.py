@@ -10,6 +10,7 @@ Controls:
   ENTER       - Swing breadstick / Launch pizza slice
   E           - Pick up Jetpack / Drop Jetpack
   R           - Restart current level / Next level (when victorious)
+  M           - Toggle developer mode (grid overlay)
   ESC         - Quit
 """
 
@@ -99,6 +100,8 @@ def handle_events(world, screen, clock, dev_mode):
             if event.key == pygame.K_r:
                 world, dev_mode = _restart(world, screen, clock, dev_mode)
                 continue
+            if event.key == pygame.K_m:
+                dev_mode = not dev_mode
             if world.state == PLAYING and event.key == pygame.K_e:
                 _toggle_jetpack(world)
         if world.state == PLAYING:
