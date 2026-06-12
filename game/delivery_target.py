@@ -1,14 +1,16 @@
 import math
 import pygame
+from grid import to_px
 from constants import (
     STONE, DK_STONE, DK_BROWN, LT_BLUE, RED, YELLOW, DK_ORANGE,
 )
 
 
 class DeliveryTarget:
-    def __init__(self, x, y, required_slices=1):
-        self.x               = x
-        self.y               = y
+    def __init__(self, grid_x, grid_y, required_slices=1):
+        # Constructor args are grid coordinates — convert to pixels here.
+        self.x               = to_px(grid_x)
+        self.y               = to_px(grid_y)
         self.required_slices = required_slices
         self.slices_delivered = 0
 

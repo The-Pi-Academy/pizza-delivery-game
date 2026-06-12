@@ -1,4 +1,5 @@
 import pygame
+from grid import to_px
 from constants import DK_GRAY, GRAY, ORANGE, YELLOW, SCREEN_WIDTH, SCREEN_HEIGHT, GRAVITY
 
 
@@ -6,11 +7,21 @@ class JetpackItem:
     """World-space jetpack pickup — press E to equip, E again to drop."""
     W, H = 24, 32
 
-    def __init__(self, x: float, y: float):
-        self.x       = float(x)
-        self.y       = float(y)
+    def __init__(self, grid_x: float, grid_y: float):
+        # Constructor args are grid coordinates — convert to pixels here.
+        # grid_y is the row the item rests on, so offset up by its height.
+        self.x       = float(to_px(grid_x))
+        self.y       = float(to_px(grid_y) - self.H)
         self.speed_y = 0.0
         self.active  = True
+
+    @classmethod
+    def from_pixels(cls, x: float, y: float) -> "JetpackItem":
+        """Build directly from pixel coordinates (e.g. dropping at the player's feet)."""
+        item = cls(0, 0)
+        item.x = float(x)
+        item.y = float(y)
+        return item
 
     def update(self, platforms) -> None:
         if not self.active:

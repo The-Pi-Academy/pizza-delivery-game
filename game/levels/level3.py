@@ -1,9 +1,9 @@
-from grid            import TileMap, to_px
+from grid            import TileMap
 from enemy           import Enemy
 from delivery_target import DeliveryTarget
 from jetpack         import JetpackItem
 from gas_can         import GasCan
-from levels.base     import Level, GROUND_ROW, GROUND_Y
+from levels.base     import Level, GROUND_ROW
 
 
 class Level3(Level):
@@ -42,21 +42,19 @@ class Level3(Level):
         tilemap.add( 4,-13, 10, 1, S)   # step 7
         tilemap.add(17,-17,  7, 1, S)   # step 8  (4-row gap from step 7)
 
-        ey = lambda row: to_px(row) - 46
         enemies = [
-            Enemy(to_px( 7), ey( 7), to_px( 5), to_px(13), 60),   # step 1
-            Enemy(to_px( 5), ey( 1), to_px( 4), to_px(13), 60),   # step 3
-            Enemy(to_px( 6), ey(-6), to_px( 4), to_px(13), 80),   # step 5
-            Enemy(to_px( 6), ey(-13),to_px( 4), to_px(14), 80),   # step 7
+            Enemy( 7,  7,  5, 13, 60),   # step 1
+            Enemy( 5,  1,  4, 13, 60),   # step 3
+            Enemy( 6, -6,  4, 13, 80),   # step 5
+            Enemy( 6, -13, 4, 14, 80),   # step 7
         ]
 
-        deliveries = [DeliveryTarget(to_px(18), to_px(-19)), DeliveryTarget(to_px(24), to_px(-3))]
+        deliveries = [DeliveryTarget(18, -19), DeliveryTarget(24, -3)]
 
-        jetpack_items = [JetpackItem(to_px(4), GROUND_Y - JetpackItem.H)]
+        jetpack_items = [JetpackItem(4, GROUND_ROW)]
 
-        gc_h = GasCan.H
         gas_cans = [
-            GasCan(to_px(9),  GROUND_Y - gc_h),           # ground, before step 1
+            GasCan(9, GROUND_ROW),           # ground, before step 1
             # ADD MORE GAS CANS HERE
         ]
 

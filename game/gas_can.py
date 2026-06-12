@@ -1,5 +1,6 @@
 import math
 import pygame
+from grid import to_px
 from constants import ORANGE, YELLOW, GRAY, DK_GRAY, SCREEN_WIDTH, SCREEN_HEIGHT
 
 
@@ -7,9 +8,11 @@ class GasCan:
     """World-space gas can — auto-collected on contact, refuels the jetpack."""
     W, H = 20, 28
 
-    def __init__(self, x: float, y: float):
-        self.x = float(x)
-        self.y = float(y)
+    def __init__(self, grid_x: float, grid_y: float):
+        # Constructor args are grid coordinates — convert to pixels here.
+        # grid_y is the row the can rests on, so offset up by its height.
+        self.x = float(to_px(grid_x))
+        self.y = float(to_px(grid_y) - self.H)
         self.active = True
 
     @property

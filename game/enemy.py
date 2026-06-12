@@ -1,4 +1,5 @@
 import pygame
+from grid import to_px
 from constants import (
     GRAVITY,
     SKIN, GRAY, DK_GRAY, DARK_RED, GREEN, WHITE, DK_BROWN,
@@ -8,15 +9,17 @@ from constants import (
 class Enemy:
     DAMAGE = 20
 
-    def __init__(self, x, y, left_bound=0, right_bound=0, hp=60, stationary=False):
-        self.x = float(x)
-        self.y = float(y)
+    def __init__(self, grid_x, grid_y, left_bound=0, right_bound=0, hp=60, stationary=False):
         self.w = 32
         self.h = 46
+        # Constructor args are grid coordinates — convert to pixels here.
+        # grid_y is the row the enemy stands on, so offset up by its height.
+        self.x = float(to_px(grid_x))
+        self.y = float(to_px(grid_y) - self.h)
         self.speed_x     = 1.4
         self.speed_y     = 0.0
-        self.left_bound  = left_bound
-        self.right_bound = right_bound
+        self.left_bound  = to_px(left_bound)
+        self.right_bound = to_px(right_bound)
         self.facing_right = True
         self.stationary  = stationary
         self.hp     = hp

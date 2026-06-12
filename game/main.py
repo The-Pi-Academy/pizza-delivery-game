@@ -85,7 +85,7 @@ def main():
                         # Drop: spawn item at player's feet
                         player.has_jetpack = False
                         player.jetpack_fuel = 0
-                        dropped = JetpackItem(player.x, player.y + player.h - JetpackItem.H)
+                        dropped = JetpackItem.from_pixels(player.x, player.y + player.h - JetpackItem.H)
                         jetpack_items.append(dropped)
                     else:
                         # Try to pick up a nearby jetpack
