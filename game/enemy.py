@@ -9,7 +9,7 @@ from constants import (
 class Enemy:
     DAMAGE = 20
 
-    def __init__(self, grid_x, grid_y, left_bound=0, right_bound=0, hp=60, stationary=False):
+    def __init__(self, grid_x, grid_y, left_tiles=0, right_tiles=0, hp=60):
         self.w = 32
         self.h = 46
         # Constructor args are grid coordinates — convert to pixels here.
@@ -18,10 +18,13 @@ class Enemy:
         self.y = float(to_px(grid_y) - self.h)
         self.speed_x     = 1.4
         self.speed_y     = 0.0
-        self.left_bound  = to_px(left_bound)
-        self.right_bound = to_px(right_bound)
+        # Patrol limits are relative to the spawn column: the enemy ranges from
+        # left_tiles tiles left of spawn to right_tiles tiles right of spawn.
+        self.left_bound  = self.x - to_px(left_tiles)
+        self.right_bound = self.x + to_px(right_tiles)
         self.facing_right = True
-        self.stationary  = stationary
+        # No patrol room (zero-width bounds) → the enemy just stands guard.
+        self.stationary  = self.left_bound == self.right_bound
         self.hp     = hp
         self.max_hp = hp
         self.active = True
@@ -59,8 +62,8 @@ class Enemy:
                 self.x       = self.left_bound
                 self.speed_x = abs(self.speed_x)
                 self.facing_right = True
-            elif self.x + self.w >= self.right_bound:
-                self.x       = self.right_bound - self.w
+            elif self.x >= self.right_bound:
+                self.x       = self.right_bound
                 self.speed_x = -abs(self.speed_x)
                 self.facing_right = False
 

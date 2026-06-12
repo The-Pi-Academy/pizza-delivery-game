@@ -43,13 +43,15 @@ class Level3(Level):
         tilemap.add(17,-17,  7, 1, S)   # step 8  (4-row gap from step 7)
 
         enemies = [
-            Enemy( 7,  7,  5, 13, 60),   # step 1
-            Enemy( 5,  1,  4, 13, 60),   # step 3
-            Enemy( 6, -6,  4, 13, 80),   # step 5
-            Enemy( 6, -13, 4, 14, 80),   # step 7
+            Enemy( 7,  7,  2, 6, 60),   # step 1
+            Enemy( 5,  1,  1, 8, 60),   # step 3
+            Enemy( 6, -6,  2, 7, 80),   # step 5
+            Enemy( 6, -13, 2, 8, 80),   # step 7
+            Enemy( 6, -13, 2, 8, 80),   # step 7
+            Enemy( 22, -3, 0, 0, 80),
         ]
 
-        deliveries = [DeliveryTarget(18, -19), DeliveryTarget(24, -3)]
+        deliveries = [DeliveryTarget(18, -19, 2), DeliveryTarget(24, -3, 4)]
 
         jetpack_items = [JetpackItem(4, GROUND_ROW)]
 

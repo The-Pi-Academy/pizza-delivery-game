@@ -23,10 +23,10 @@ class Level2(Level):
         deliveries.append(DeliveryTarget(10, GROUND_ROW - 1.5, required_slices=2))
 
         # after first wall add some enemies
-        enemies.append(Enemy(9, GROUND_ROW, 4, 15, 60))
-        enemies.append(Enemy(12, GROUND_ROW, 10, 14, 60))
-        enemies.append(Enemy(16, GROUND_ROW, 15, 18, 60))
-        enemies.append(Enemy(18, GROUND_ROW, 17, 20, 60))
+        enemies.append(Enemy(9, GROUND_ROW, 5, 6, 60))
+        enemies.append(Enemy(12, GROUND_ROW, 2, 2, 60))
+        enemies.append(Enemy(16, GROUND_ROW, 1, 2, 60))
+        enemies.append(Enemy(18, GROUND_ROW, 1, 2, 60))
 
         # second gap, too big to cross. Fix this to make it past!
         tilemap.add_range(26, GROUND_ROW, 60, GROUND_ROW, G)
